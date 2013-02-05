@@ -1,15 +1,13 @@
 class: priest
 build: shadow
 
-var haveMastery;
-
-PreCombat {
-    haveMastery = Known("Mastery");
-}
 
 // no way to regain mana, so just shoot if OOM
-InCombat ("Shoot") {
-    clip {
+InCombat 
+("Shoot") 
+{
+    clip 
+    {
 	"Vampiric Touch": 	1;
 	"Shadow Word: Pain":	1;
 	"Devouring Plague":	1;
@@ -17,43 +15,52 @@ InCombat ("Shoot") {
 
     // our bubble and armor are *really* useful when solo fighting, but
     // less so in a group
-    if (Solo()) {
-        alternate {
-	    "Power Word: Shield":	!Buff() && Castable();
-	    "Inner Fire":		!Buff();
-	};
-    }
+    if (Solo()) 
+       {
+        alternate (1) {"Power Word: Shield":	!Buff() && Castable();};
+        alternate (1){"Inner Fire":		!Buff();};
+       }
 
-    var EvTime, EvCount;
-    EvTime, EvCount = BuffInfo("Evangelism");
+    alternate (2){ "Shadowfiend": Castable(); };
 
-    alternate (1) { "Shadowfiend": Castable(); };
-    alternate (2) { "Archangel":   EvCount >= 5; };
-
-    "Shadowform":		!Buff();
-    "Vampiric Embrace":		!Buff();
-
-    "Vampiric Touch": 		!Debuff();
-    "Shadow Word: Pain":	!Debuff();
-    "Devouring Plague":		!Debuff();
-    
-    /*
-     *  Don't mindblast if we will need to refresh (or apply) Empowered Shadows
-     *  and we have no orbs (unless we don't have Mastery yet, in which case
-     *  we should just be Mind Blasting on cooldown)
-     */
-    "Mind Blast":		(!haveMastery || Buff("Shadow Orb") ||
-				 BuffTime("Empowered Shadow")  > 6.5);
-
-    "Shadow Word: Death":	TargetHealth() <= 25;
-    "Mind Flay";
+    if (boss())
+       {
+        //Cible simple
+        "Shadowform":		!Buff();
+        "Shadow Word: Pain":	!DebuffByMe();
+        "Vampiric Touch": 		!DebuffByMe();
+        "Devouring Plague":		!DebuffByMe() && HolyPower() == 3;
+        "Mind Blast":		HolyPower() < 3;
+        "Mind Spike":              Buff("Surge of Darkness");
+        "Cascade":                 Castable();
+        "Divine Star":             Castable();
+        "Halo":                    Castable();
+        "Shadow Word: Death":	TargetHealth() <= 20;
+        "Mind Flay";
+        //Alternative
+        alternate (3) {"Mind Sear":		!Buff();};
+        } 
+    else
+        {
+        "Shadowform":		!Buff();
+        "Shadow Word: Pain":	!DebuffByMe();
+        "Devouring Plague":		!DebuffByMe() && HolyPower() == 3;
+        "Mind Blast":		HolyPower() < 3;
+        "Mind Spike":              Buff("Surge of Darkness");
+        "Cascade":                 Castable();
+        "Divine Star":             Castable();
+        "Halo":                    Castable();
+        "Shadow Word: Death":	TargetHealth() <= 20;
+        "Mind Flay";
+        //Alternative
+        alternate (3) {"Mind Sear":		!Buff();};
+        }
 }
 
 OutOfCombat {
     clip {
 	"Power Word: Fortitude": 300;
 	"Inner Fire":		 300;
-	"Vampiric Embrace":	 300;
     };
     	
     if (!Mounted()) {

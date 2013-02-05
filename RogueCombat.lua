@@ -8,41 +8,41 @@ DestroDummies.lastClassVal = DestroDummies.lastClassVal + 1;
 local mIndexBase = DestroDummies.lastMutexIndex;
 
 DestroDummies.mutex[mIndexBase + 1] = {};
-DestroDummies.mutex[mIndexBase + 1].clipCombat = 1;
-DestroDummies.mutex[mIndexBase + 1].clipOOCombat = 1;
-DestroDummies.mutex[mIndexBase + 1][1] = DestroDummies:xlateString("Expose Armor")
-DestroDummies.mutex[mIndexBase + 1][2] = DestroDummies:xlateString("Faerie Fire")
-DestroDummies.mutex[mIndexBase + 1][3] = DestroDummies:xlateString("Faerie Fire (Feral)")
-DestroDummies.mutex[mIndexBase + 1].count = 3;
-DestroDummies.mutex[mIndexBase + 2] = {};
-DestroDummies.mutex[mIndexBase + 2].clipCombat = 0;
-DestroDummies.mutex[mIndexBase + 2].clipOOCombat = 0;
-DestroDummies.mutex[mIndexBase + 2][1] = DestroDummies:xlateString("Mangle")
-DestroDummies.mutex[mIndexBase + 2][2] = DestroDummies:xlateString("Hemorrhage")
-DestroDummies.mutex[mIndexBase + 2][3] = DestroDummies:xlateString("Blood Frenzy")
-DestroDummies.mutex[mIndexBase + 2][4] = DestroDummies:xlateString("Tendon Rip")
-DestroDummies.mutex[mIndexBase + 2][5] = DestroDummies:xlateString("Gore")
-DestroDummies.mutex[mIndexBase + 2].count = 5;
+DestroDummies.mutex[mIndexBase + 1].clipCombat = 0;
+DestroDummies.mutex[mIndexBase + 1].clipOOCombat = 0;
+DestroDummies.mutex[mIndexBase + 1][1] = DestroDummies:xlateString("Mangle")
+DestroDummies.mutex[mIndexBase + 1][2] = DestroDummies:xlateString("Hemorrhage")
+DestroDummies.mutex[mIndexBase + 1][3] = DestroDummies:xlateString("Blood Frenzy")
+DestroDummies.mutex[mIndexBase + 1][4] = DestroDummies:xlateString("Tendon Rip")
+DestroDummies.mutex[mIndexBase + 1][5] = DestroDummies:xlateString("Gore")
+DestroDummies.mutex[mIndexBase + 1].count = 5;
 local function PickCombat()
     DestroDummies:analysisInit();
     local clipSliceAndDice = 1.25;
+    local clipRevealingStrike = 1;
     if (DestroDummies:spellReady(DestroDummies:xlateString("Killing Spree"))) then
         DestroDummies:altRecommend(DestroDummies:xlateString("Killing Spree"), 0);
     end;
     if ((DestroDummies:spellReady(DestroDummies:xlateString("Blade Flurry"))) and (not (DestroDummies:utilBuff(DestroDummies:xlateString("Blade Flurry"), 0, "player", "HELPFUL", nil)))) then
         DestroDummies:altRecommend(DestroDummies:xlateString("Blade Flurry"), 0);
     end;
+    if (DestroDummies:spellReady(DestroDummies:xlateString("Adrenaline Rush"))) then
+        DestroDummies:altRecommend(DestroDummies:xlateString("Adrenaline Rush"), 0);
+    end;
     local varcomboPts = GetComboPoints("player", "target");
+    if ((DestroDummies:distanceToTarget()) > (15)) then
+        DestroDummies:analysisAdd(DestroDummies:xlateString("Shadowstep"));
+    end;
     if ((not (DestroDummies:utilBuff(DestroDummies:xlateString("Slice and Dice"), clipSliceAndDice, "player", "HELPFUL", nil))) and ((varcomboPts) > (0))) then
         DestroDummies:analysisAdd(DestroDummies:xlateString("Slice and Dice"));
     end;
-    if (((varcomboPts) == (4)) and (not (DestroDummies:utilDebuff(DestroDummies:xlateString("Revealing Strike"), 0)))) then
+    if (((varcomboPts) == (4)) and (not (DestroDummies:utilDebuff(DestroDummies:xlateString("Revealing Strike"), clipRevealingStrike)))) then
         DestroDummies:analysisAdd(DestroDummies:xlateString("Revealing Strike"));
     end;
-    if (((not (DestroDummies:utilDebuff(DestroDummies:xlateString("Rupture"), 0))) and (DestroDummies:utilMxDebuff(mIndexBase + 2))) and ((varcomboPts) == (5))) then
+    if (((not (DestroDummies:utilDebuff(DestroDummies:xlateString("Rupture"), 0))) and ((DestroDummies:utilTimeToDie()) > (60))) and ((varcomboPts) == (5))) then
         DestroDummies:analysisAdd(DestroDummies:xlateString("Rupture"));
     end;
-    if ((not (DestroDummies:utilMxDebuff(mIndexBase + 1))) and ((varcomboPts) == (5))) then
+    if ((((DestroDummies:utilTimeToDie()) > (60)) and ((DestroDummies:utilBuffInfo(DestroDummies:xlateString("Weakened Armor"), true, "target")) < (3))) and ((varcomboPts) < (5))) then
         DestroDummies:analysisAdd(DestroDummies:xlateString("Expose Armor"));
     end;
     if ((varcomboPts) == (5)) then
@@ -69,4 +69,4 @@ end;
 -- populate our registries
 DestroDummies.registry.decideCombat[DestroDummies.classRogueCombat] = PickCombat;
 DestroDummies.registry.decideNoCombat[DestroDummies.classRogueCombat] = PickNoCombat;
-DestroDummies.lastMutexIndex = mIndexBase + 2;
+DestroDummies.lastMutexIndex = mIndexBase + 1;

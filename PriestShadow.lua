@@ -7,12 +7,6 @@ DestroDummies.lastClassVal = DestroDummies.lastClassVal + 1;
 
 local mIndexBase = DestroDummies.lastMutexIndex;
 
-local varhaveMastery;
-local function preCombat()
-    varhaveMastery = (GetSpellInfo(DestroDummies:xlateString("Mastery")) ~= nil)
-end
-DestroDummies.registry.preCombat[DestroDummies.classPriestShadow] = preCombat;
-
 local function PickCombat()
     DestroDummies:analysisInit();
     local clipVampiricTouch = 1;
@@ -20,43 +14,83 @@ local function PickCombat()
     local clipDevouringPlague = 1;
     if (not IsInGroup()) then
         if ((not (DestroDummies:utilBuff(DestroDummies:xlateString("Power Word: Shield"), 0, "player", "HELPFUL", nil))) and (DestroDummies:spellReady(DestroDummies:xlateString("Power Word: Shield")))) then
-            DestroDummies:altRecommend(DestroDummies:xlateString("Power Word: Shield"), 0);
+            DestroDummies:altRecommend(DestroDummies:xlateString("Power Word: Shield"), 1);
         end;
         if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Inner Fire"), 0, "player", "HELPFUL", nil))) then
-            DestroDummies:altRecommend(DestroDummies:xlateString("Inner Fire"), 0);
+            DestroDummies:altRecommend(DestroDummies:xlateString("Inner Fire"), 1);
         end;
     end;
-    local varEvTime;
-    local varEvCount;
-    varEvTime, varEvCount = DestroDummies:utilBuffInfo(DestroDummies:xlateString("Evangelism"), false, "player")
     if (DestroDummies:spellReady(DestroDummies:xlateString("Shadowfiend"))) then
-        DestroDummies:altRecommend(DestroDummies:xlateString("Shadowfiend"), 1);
+        DestroDummies:altRecommend(DestroDummies:xlateString("Shadowfiend"), 2);
     end;
-    if ((varEvCount) >= (5)) then
-        DestroDummies:altRecommend(DestroDummies:xlateString("Archangel"), 2);
+    if DestroDummies:utilBoss() then
+        if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Shadowform"), 0, "player", "HELPFUL", nil))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Shadowform"));
+        end;
+        if (not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Shadow Word: Pain"), clipShadowWordPain))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Shadow Word: Pain"));
+        end;
+        if (not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Vampiric Touch"), clipVampiricTouch))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Vampiric Touch"));
+        end;
+        if ((not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Devouring Plague"), clipDevouringPlague))) and ((UnitPower("player", SPELL_POWER_HOLY_POWER)) == (3))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Devouring Plague"));
+        end;
+        if ((UnitPower("player", SPELL_POWER_HOLY_POWER)) < (3)) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Blast"));
+        end;
+        if (DestroDummies:utilBuff(DestroDummies:xlateString("Surge of Darkness"), 0, "player", "HELPFUL", nil)) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Spike"));
+        end;
+        if (DestroDummies:spellReady(DestroDummies:xlateString("Cascade"))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Cascade"));
+        end;
+        if (DestroDummies:spellReady(DestroDummies:xlateString("Divine Star"))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Divine Star"));
+        end;
+        if (DestroDummies:spellReady(DestroDummies:xlateString("Halo"))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Halo"));
+        end;
+        if ((DestroDummies:utilHealth("target")) <= (20)) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Shadow Word: Death"));
+        end;
+        DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Flay"));
+        if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Mind Sear"), 0, "player", "HELPFUL", nil))) then
+            DestroDummies:altRecommend(DestroDummies:xlateString("Mind Sear"), 3);
+        end;
+    else
+        if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Shadowform"), 0, "player", "HELPFUL", nil))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Shadowform"));
+        end;
+        if (not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Shadow Word: Pain"), clipShadowWordPain))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Shadow Word: Pain"));
+        end;
+        if ((not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Devouring Plague"), clipDevouringPlague))) and ((UnitPower("player", SPELL_POWER_HOLY_POWER)) == (3))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Devouring Plague"));
+        end;
+        if ((UnitPower("player", SPELL_POWER_HOLY_POWER)) < (3)) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Blast"));
+        end;
+        if (DestroDummies:utilBuff(DestroDummies:xlateString("Surge of Darkness"), 0, "player", "HELPFUL", nil)) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Spike"));
+        end;
+        if (DestroDummies:spellReady(DestroDummies:xlateString("Cascade"))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Cascade"));
+        end;
+        if (DestroDummies:spellReady(DestroDummies:xlateString("Divine Star"))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Divine Star"));
+        end;
+        if (DestroDummies:spellReady(DestroDummies:xlateString("Halo"))) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Halo"));
+        end;
+        if ((DestroDummies:utilHealth("target")) <= (20)) then
+            DestroDummies:analysisAdd(DestroDummies:xlateString("Shadow Word: Death"));
+        end;
+        DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Flay"));
+        if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Mind Sear"), 0, "player", "HELPFUL", nil))) then
+            DestroDummies:altRecommend(DestroDummies:xlateString("Mind Sear"), 3);
+        end;
     end;
-    if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Shadowform"), 0, "player", "HELPFUL", nil))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Shadowform"));
-    end;
-    if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Vampiric Embrace"), 0, "player", "HELPFUL", nil))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Vampiric Embrace"));
-    end;
-    if (not (DestroDummies:utilDebuff(DestroDummies:xlateString("Vampiric Touch"), clipVampiricTouch))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Vampiric Touch"));
-    end;
-    if (not (DestroDummies:utilDebuff(DestroDummies:xlateString("Shadow Word: Pain"), clipShadowWordPain))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Shadow Word: Pain"));
-    end;
-    if (not (DestroDummies:utilDebuff(DestroDummies:xlateString("Devouring Plague"), clipDevouringPlague))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Devouring Plague"));
-    end;
-    if ((((not (varhaveMastery)) or (DestroDummies:utilBuff(DestroDummies:xlateString("Shadow Orb"), 0, "player", "HELPFUL", nil))) or ((DestroDummies:utilBuffTime(DestroDummies:xlateString("Empowered Shadow"))) > (6.50)))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Blast"));
-    end;
-    if ((DestroDummies:utilHealth("target")) <= (25)) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Shadow Word: Death"));
-    end;
-    DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Flay"));
     return DestroDummies:analysisPick("Shoot", nil);
 end;
 
@@ -64,7 +98,6 @@ local function PickNoCombat()
     DestroDummies:analysisInit();
     local clipPowerWordFortitude = 300;
     local clipInnerFire = 300;
-    local clipVampiricEmbrace = 300;
     if not (IsMounted()) then
         if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Power Word: Fortitude"), clipPowerWordFortitude, "player", "HELPFUL", nil))) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Power Word: Fortitude"));
@@ -72,7 +105,7 @@ local function PickNoCombat()
         if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Inner Fire"), clipInnerFire, "player", "HELPFUL", nil))) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Inner Fire"));
         end;
-        if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Vampiric Embrace"), clipVampiricEmbrace, "player", "HELPFUL", nil))) then
+        if (not (DestroDummies:utilBuff(DestroDummies:xlateString("Vampiric Embrace"), 0, "player", "HELPFUL", nil))) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Vampiric Embrace"));
         end;
         if (((not (DestroDummies:utilBuff(DestroDummies:xlateString("Power Word: Shield"), 0, "player", "HELPFUL", nil))) and (DestroDummies:spellReady(DestroDummies:xlateString("Power Word: Shield")))) and ((not IsInGroup()))) then
