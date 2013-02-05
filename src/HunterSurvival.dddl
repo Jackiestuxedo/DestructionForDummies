@@ -1,0 +1,142 @@
+class: hunter
+build: survival
+
+Mutex MxAspect {
+    "Aspect of the Hawk",
+    "Aspect of the Iron Hawk",
+    "Aspect of the Pack",
+    "Aspect of the Wild",
+    "Aspect of the Cheetah",
+    "Aspect of the Fox",
+};
+
+Mutex MxSting {
+    "Serpent Sting",
+    "Wyvern Sting",
+};
+
+Mutex MxMark {
+    "Marked for Death",
+    "Hunter's Mark",
+};
+
+/*
+ *  Figure out the right aspect.   Pass in whether or not you are in combat,
+ *  and whether or not you are using ranged attacks (only applicable in combat)
+ *
+ *  This is broken out as a separate function because it used to be far
+ *  more complicated than it is now.
+ */
+function DoAspect(combat, ranged) {
+    if (combat) {
+	/*
+	 *  If they currently have Hawk, Fox, or Wild up, shut up.
+	 *
+	 *  If anything else, call for Hawk
+	 */
+	switch (MxBuffByMe(MxAspect)) {
+	    case "Aspect of the Hawk":
+	    case "Aspect of the Iron Hawk":
+	    case "Aspect of the Fox":
+	    case "Aspect of the Wild": {
+		;
+	    }
+	
+	    default: {
+	        "Aspect of the Iron Hawk";
+		"Aspect of the Hawk";
+	    }
+	}
+    } else {
+	// Out of combat
+	
+	/*
+	 *  If they have an aspect up, don't whine.  Otherwise call for Hawk
+	 */
+	"Aspect of the Iron Hawk":	!MxBuffByMe(MxAspect);
+	"Aspect of the Hawk":		!MxBuffByMe(MxAspect);
+    }
+}
+
+InCombat {
+    var pHealth;
+    var ranged;
+
+    pHealth = PetHealth();
+
+    if (pHealth == nil) {
+    	pHealth = 0;
+    }
+
+    alternate {
+	"Revive Pet": 	pHealth == 0;
+        "Kill Command":	Castable() && !PetBuff();
+	"Rapid Fire":	Castable();
+	"Readiness":	Castable();
+    };
+
+    ranged = RangedCombat("Auto Shot");
+
+    "Mend Pet":		!PetBuff() && pHealth > 0 && pHealth < 50;
+    call DoAspect(1, ranged);	// get the right aspect
+    "Hunter's Mark":	!MxDebuff(MxMark) && ranged;
+
+    // what follows is normal rotation.  don't pester them in minimal help mode
+    if (FerralMode()) {
+	"Serpent Sting":	ranged && !MxDebuffByMe(MxSting) && !LastCast();
+    } else {
+	if (ranged) {
+	    "Serpent Sting":	!MxDebuffByMe(MxSting) && !LastCast();
+	    "Explosive Shot":	!DebuffByMe();
+	    "Kill Shot":	TargetHealth() <= 20;
+	    "Black Arrow":	TimeToDie() > 15;
+	    "Mend Pet":		!PetBuff() && pHealth > 0 && pHealth < 70;
+
+	    /*
+	     *  Do we have enough focus to do a focus dump?  We need
+	     *  to be able to do ES and BA after this, but we need to
+	     *  be clever about cooldowns, as BA has a 30 second
+	     *  cooldown so there's no point in holding focus for it
+	     *  if it's not about to end.
+	     *
+	     *  We regain focus at 6 focus/sec, so we'll only worry
+	     *  about BA if it's going to be usable in less than 6
+	     *  seconds (we'll regen enough focus to use it in 6
+	     *  seconds, so that seems reasonable.
+	     */
+	    var blackArrowPower;
+	    if (Cooldown("Black Arrow") < 6) {
+		blackArrowPower = RequiredPower("Black Arrow");
+	    } else {
+		blackArrowPower = 0;
+	    }
+	    "Arcane Shot":	RawPower() >= (RequiredPower("Explosive Shot") +
+					       blackArrowPower +
+					       RequiredPower());
+
+	    "Cobra Shot";
+	    "Steady Shot";
+	} else {
+	    // melee combat
+	    "Disengage";
+	    "Raptor Strike":	Castable();
+	    "Wing Clip":	Castable();
+	}
+    }
+}
+
+OutOfCombat {
+    // don't bug them about aspects or pets if they are mounted
+    if (!Mounted()) {
+	call DoAspect(nil, nil);
+
+	var pHealth = PetHealth();
+	var withPet = HasPet();
+	if (pHealth == nil) {
+	    "Revive Pet";
+	} else {
+	    "Call Pet":	!PetExists();
+	    "Mend Pet":	withPet && (pHealth > 0 && pHealth < 90 && !PetBuff());
+	}
+    }
+}

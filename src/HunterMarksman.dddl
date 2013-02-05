@@ -1,0 +1,142 @@
+class: hunter
+build: marksman
+
+Mutex MxSting {
+    "Serpent Sting",
+    "Wyvern Sting",
+};
+
+Mutex MxMark {
+    "Marked for Death",
+    "Hunter's Mark",
+};
+
+var steadyShots, haveMFD;
+
+PreCombat {
+    steadyShots = 0;
+    haveMFD = HasGlyph("Marked for Death");
+}
+
+SpellSent (spell) {
+    // Count the Steady Shots in a row
+    if (spell == "Steady Shot") {
+	steadyShots = steadyShots + 1;
+    } else {
+	steadyShots = 0;
+    }
+}
+
+InCombat ("Steady Shot") {
+    var pHealth;
+
+    pHealth = PetHealth();
+
+    alternate {
+	"Revive Pet": 		pHealth == nil || pHealth == 0;
+    };
+
+    alternate (2) {
+	// we put silencing shot here instead of first on the rotation
+	// because there are going to be fights where you want to save
+	// it, and we can't have it blocking everything else in those cases
+	"Silencing Shot":	Castable();
+    };
+
+    alternate (1) {
+        "Kill Command":		Castable() && !PetBuff();
+    };
+
+    alternate (3) {
+	"Stampede":		Castable();
+    };
+
+    alternate (4) {
+	"Readiness":		Castable();
+    };
+
+    if (pHealth == nil) {
+    	pHealth = 0;
+    }
+
+    "Mend Pet":		!PetBuff() && pHealth > 0 && pHealth < 50;
+    call DoAspect(1, ranged);
+
+    // what follows is normal rotation.  don't pester them in minimal help mode
+    if (FerralMode()) {
+	"Serpent Sting":	!MxDebuffByMe(MxSting) && !LastCast() && TimeToDie() > 12;
+    } else {
+	var phase, CA, ST, KS;
+	CA = 0;		// define some constants
+	ST = 1;
+	KS = 2;
+
+	if (TargetHealth() > 90) {
+	    phase = CA;
+	} else {
+	    if (TargetHealth() > 20) {
+		phase = ST;
+	    } else {
+		phase = KS;
+	    }
+	}
+
+	// complete the ISS pair
+	"Steady Shot":		steadyShots == 1 && BuffTime("Improved Steady Shot") < 6;
+
+	"Serpent Sting":	(!MxDebuffByMe(MxSting) && !LastCast() &&
+				 TimeToDie() > 15);
+	"Kill Shot":		phase == KS;
+	"Rapid Fire";
+	"Murder of Crows":	!DebuffByMe();
+	"Dire Beast";
+
+	if (!MxDebuff(MxMark)) {
+	    if (haveMFD) {
+		"Chimera Shot";
+		"Arcane Shot";
+	    } else {
+		"Hunter's Mark";
+	    }
+	}
+	"Chimera Shot";
+	"Glaive Toss":		phase == ST || phase == KS;
+
+	// we do not recommend Readiness, as that is likely being saved for a burn phase
+	// ditto, Stampede
+
+	"Aimed Shot":		Buff("Fire!");
+	"Arcane Shot":		phase == ST || phase == KS;
+
+	var ssTime;
+	ssTime = DebuffByMeInfo("Serpent Sting");
+	"Chimera Shot":	ssTime > 0 && ssTime < 2.5;
+	    
+	// Aimed shot is a slow cast, and it's possible that Serpent
+	// Sting will fall off as a result.  So add some extra slop
+	// just in case
+	if (RequiredPower("Aimed Shot") <= RawPower()) {
+	    "Chimera Shot":	ssTime > 0 && ssTime < 3.0;
+	    "Aimed Shot";
+	}
+
+	"Mend Pet":		!PetBuff() && pHealth > 0 && pHealth < 70;
+	"Steady Shot";
+    }
+}
+
+OutOfCombat {
+    // don't bug them about aspects or pets if they are mounted
+    if (!Mounted()) {
+	call DoAspect(nil, nil);
+
+	var pHealth = PetHealth();
+	var withPet = HasPet();
+	if (pHealth == nil) {
+	    "Revive Pet";
+	} else {
+	    "Call Pet":	!PetExists();
+	    "Mend Pet":	withPet && (pHealth > 0 && pHealth < 90 && !PetBuff());
+	}
+    }
+}

@@ -1,0 +1,57 @@
+class: warrior
+build: fury
+
+var strikeReady = 1;
+
+mutex MxAttackPowerAdd {
+    "Battle Shout",
+    "Blessing of Might",
+};
+
+SpellSent(spell) {
+    if (spell == "Heroic Strike") {
+	strikeReady = nil;
+    } 
+}
+
+PreCombat {
+    strikeReady = 1;
+}
+
+PostSpell (spell, success) {
+    if (spell == "Heroic Strike") {
+	strikeReady = 1;
+    }
+}
+
+InCombat {
+    if (Boss()) {
+	var sunderTime, sunderCount;
+	sunderTime, sunderCount = DebuffInfo("Sunder Armor");
+
+	"Sunder Armor":		sunderCount < 3 || sunderTime < 6;
+	"Demoralizing Shout":	!Debuff();
+    }
+
+    alternate (1) { "Death Wish": 	Castable(); };
+    alternate (2) { "Recklessness": 	Castable(); };
+    alternate (3) { "Heroic Strike":	strikeReady && Castable() && Power() > 50; };
+
+    // If a Slam! will expire before the next GCD, do it now (we add an
+    // extra .25 second of slop)
+    "Slam":		Buff("Bloodsurge") && BuffTime("Bloodsurge") < 1.75;
+
+    // This almost certainly needs to be a mutex with other things by other
+    // classes
+    "Battle Shout":		!MxBuff(MxAttackPowerAdd);
+
+    "Victory Rush":		Castable();
+    "Bloodthirst";
+    "Whirlwind":		Stance(3);	// Berserker stance
+    "Execute":			Castable();
+    "Slam";
+}
+
+OutOfCombat {
+    ;
+}

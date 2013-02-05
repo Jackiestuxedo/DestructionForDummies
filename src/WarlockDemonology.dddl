@@ -1,0 +1,118 @@
+class: warlock
+build: demonology
+
+mutex bane {
+    "Bane of Agony",
+    "Bane of Doom",
+    "Bane of Havoc",
+};
+
+mutex curse (clip = 1) {
+    "Curse of the Elements",
+    "Curse of Tongues",
+    "Curse of Weakness",
+    "Curse of Exhaustion",
+};
+
+mutex armor (clip = 300, 5) {
+    "Fel Armor",
+    "Demon Armor",
+};
+
+mutex corruption (clip = 1) {
+    "Corruption",
+    "Seed of Corruption",
+};
+
+mutex spellcrit (clip = 1) {
+    "Shadow and Flame",
+    "Critical Mass",
+    "Winter's Chill",
+};
+
+mutex hastebuff (clip = 1) {
+    "Heroism",
+    "Bloodlust",
+    "Time Warp",
+    "Ancient Hysteria",
+    "Improved Soul Fire",
+};
+
+var bossFight, HaveSandF, HaveImpSF;
+PreCombat {
+    bossFight = false;
+    HaveSandF = Talent("Shadow and Flame") > 1;
+    HaveImpSF = Talent("Improved Soul Fire") > 1;
+}
+
+InCombat ("Life Tap") {
+    alternate(1) { "Summon Doomguard":		Castable(); };
+    alternate(2) { "Demonic Empowerment":	Castable(); };
+    alternate(3) { "Demon Soul":		Castable(); };
+    alternate(4) { "Health Funnel":		PetHealth() < 40; };
+
+
+    /*
+     *  This preamble is the same for all Warlocks, and is not from EJ
+     *  We need to regain soul shards if we can, keep our pet alive, and
+     *  make sure we have a CoE up, and make sure we have Fel Armor up
+     */
+    bossFight = Boss() || bossFight;	// will be true if we've seen a boss
+
+    // regain soul shards if we can and have less than 2
+    "Shadowburn":    	bossFight && !Boss() && TimeToDie() < 5 &&
+    			SoulShardCount() < 2;
+
+    "Dark Intent":	!Buff();
+    "Fel Armor":        !MxBuffByMe(armor);
+
+    // there should be a CoE up on a boss
+    "Curse of the Elements":	!MxDebuffByMe(curse) && !Debuff() && Boss();
+
+    /*
+     *  End of preamble
+     */
+
+
+
+
+
+
+    /*
+     *  This is a departure from EJ, but I think it's correct.  In a raid
+     *  we want to make sure the Shadow and Flame debuff is up as it benefits
+     *  all the casters.  
+     */
+    "Shadow Bolt":	InRaid() && !LastCast() && Boss() && HaveSandF &&
+			!MxDebuff(spellcrit);
+
+
+    "Metamorphosis";
+
+    // Keep up the Soul Fire buff (or do it if they Soul Burned)
+    "Soul Fire":	!LastCast() && 
+                        ((HaveImpSF && !MxBuff(hastebuff)) || 
+			 Buff("Soulburn"));
+
+
+    "Immolation Aura":	Castable();
+    "Immolate":         !DebuffByMe() && !LastCast();
+    "Bane of Doom":	!MxDebuffByMe(bane) && TimeToDie() > 15;
+    "Corruption":	!MxDebuffByMe(corruption);
+    "Shadowflame":	Distance() <= 11.1;	// trial and error for distance
+    "Hand of Gul'dan";
+    "Incinerate":	Buff("Molten Core");
+    "Soul Fire":	Buff("Decimation");
+    "Incinerate";
+    "Shadow Bolt";		// in case they don't have incinerate
+}
+
+OutOfCombat ("Life Tap") {
+    if (!Mounted()) {
+	"Fel Armor":        !MxBuffByMe(armor);
+	"Summon Felguard":  !HasPet();
+	"Summon Imp":	    !HasPet();  // in case no felguard yet
+	"Dark Intent":	    !Buff();
+	"Soul Harvest":	    !Buff() && (SoulShardCount() < 3 || PlayerHealth() < 95);    
+    }
+}

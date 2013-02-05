@@ -1,0 +1,54 @@
+// http://elitistjerks.com/f79/t123790-enhancement_4_2_someone_spilled_spells_all_over_axe/#Priority_Queue
+
+class: shaman
+build: enhancement
+
+mutex shield (clip = 60, 5) {
+    "Lightning Shield",
+    "Water Shield",
+};
+
+InCombat {
+    clip {
+	"Windfury Weapon": 5;
+    };
+
+    alternate (1) { "Heroism": 		Castable(); };
+    alternate (1) { "Bloodlust": 	Castable(); };
+    alternate (2) { "Feral Spirit": 	Castable() && !Boss(); };
+    alternate (3) { "Fire Elemental Totem":	    Castable(); };
+
+    var mTime, mCount;
+    mTime, mCount = BuffInfo("Maelstrom Weapon");
+
+    var allGood, main, off;
+    allGood, main, off = WeaponEnhancement("Windfury Weapon");
+    "Windfury Weapon":		!main;
+    "Flametongue Weapon":	!off;
+
+    "Searing Totem":		!Totem() && !Totem("Flametongue Totem");
+    "Stormstrike";
+    "Lava Lash";
+    "Lightning Bolt":		mCount == 5;
+    "Flame Shock":		Buff("Unleash Flame");
+    "Unleash Elements";
+    "Earth Shock";
+    "Feral Spirit";
+}
+
+OutOfCombat {
+    clip {
+	"Windfury Weapon": 5 * 60;
+	"Flametongue Weapon": 5 * 60;
+    };
+
+    if (!Mounted()) {
+	var allGood, main, off;
+
+	// the spell is just for calculating the clip
+	allGood, main, off = WeaponEnhancement("Windfury Weapon");
+	"Windfury Weapon":		!main;
+	"Flametongue Weapon":		!off;
+	"Lightning Shield":		!MxBuff(shield);
+    }
+}

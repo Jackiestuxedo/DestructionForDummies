@@ -1,0 +1,47 @@
+class: rogue
+build: combat
+
+Mutex MxArmor (clip = 1) {
+    "Expose Armor",
+    "Faerie Fire",
+    "Faerie Fire (Feral)",
+};
+
+Mutex MxBleed {
+    "Mangle",
+    "Hemorrhage",
+    "Blood Frenzy",
+    "Tendon Rip",
+    "Gore",
+};
+
+InCombat ("Adrenaline Rush") {
+    clip {
+    	 "Slice and Dice":	1.25;
+    };
+
+    alternate {
+	"Killing Spree":	Castable();
+	"Blade Flurry":		Castable() && !Buff();
+    };
+
+    var comboPts = ComboPoints();
+
+    "Slice and Dice":	!Buff() && comboPts > 0;
+    "Revealing Strike":	comboPts == 4 && !Debuff();
+    "Rupture":		!Debuff() && MxDebuff(MxBleed) && comboPts == 5;
+    "Expose Armor":	!MxDebuff(MxArmor) && comboPts == 5;
+    "Eviscerate":	comboPts == 5;
+    "Garrote":		Castable();
+    "Sinister Strike";
+}
+
+OutOfCombat {
+    clip {
+	"Poisons":	5 * 60;
+    };
+    
+    if (!Mounted()) {
+	"Poisons":	!WeaponEnhancement();
+    }
+}

@@ -1,0 +1,27 @@
+// Hey emacs!  This is a -*- c -*- file!
+
+class: monk
+build: windwalker
+
+InCombat("Energizing Brew") {
+    var tptime, tecount, tetime;
+
+    tptime = BuffInfo("Tiger Power");
+    tetime, tecount = BuffInfo("Tigereye Brew");
+
+    "Rising Sun Kick":	!DebuffByMe() && Castable();
+    "Tiger Palm":	tptime < 3 && Castable();
+    "Jab":		Power() > 80;
+    "Tigereye Brew":	tecount == 10;
+    "Rising Sun Kick";
+    "Fists of Fury";
+    "Blackout Kick":	Buff("Combo Breaker");
+    "Tiger Palm":	Buff("Combo Breaker");
+    "Blackout Kick":	Castable();
+    "Jab";
+    "Flying Serpent Kick";
+}
+
+OutOfCombat {
+    ;
+}

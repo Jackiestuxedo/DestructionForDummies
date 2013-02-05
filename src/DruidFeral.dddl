@@ -1,0 +1,146 @@
+// Hey emacs!  This is a -*- c -*- file!
+
+class: druid
+build: feral
+
+#include "mutexes.h"
+
+var newRoarTime[] = {
+    [1]     14000,
+    [2]     19000,
+    [3]     24000,
+    [4]     29000,
+    [5]     34000,
+};
+
+var haveGlyphMaul;
+
+var FailSpell, FreeSpell;
+
+extern DestroDummies.debug;
+
+PreCombat {
+    haveGlyphMaul = HasGlyph("Glyph of Maul");
+}
+
+/*
+SpellSent(spell) {
+    if (DestroDummies.debug) {
+    	print("****** SpellSent(",spell,")");
+    }
+}
+
+PostSpell (spell, success) {
+    if (DestroDummies.debug) {
+    	print("****** PostSpell(", spell, success, ")");
+    }
+}
+*/
+
+InCombat (Fail = FailSpell, Free = FreeSpell) {
+    if (Buff("Bear Form")) {
+	FailSpell = "Enrage";
+	FreeSpell = "Faerie Fire";
+
+	// Have we lost the mob?  If so, Growl if we can.  (Even if we are
+	// in an AoE situation.  This probably means we have lost the skull.
+	var threatTank, threatStatus;
+	threatTank, threatStatus = Threat();
+	"Growl":	!threatTank;
+
+	alternate (1) { "Berserk":	Castable(); };
+	alternate (2) { "Growl":   	Castable() && threatStatus < 3; };
+	alternate (4) { "Barkskin":	Castable(); };
+
+	/*
+	 *  We are going to have two different bear rotations--a single-target
+	 *  rotation, used when our target is a Boss(), and an AoE rotation
+	 *  for all other cases.  We will show the best other-type attack as
+	 *  alternate 3
+	 */
+	var LacTime, LacCount;
+	LacTime, LacCount = DebuffInfo("Lacerate");
+
+	if (Boss()) {
+	    // single target
+
+	    "Demoralizing Roar":	!Debuff();
+	    "Mangle";
+	    "Lacerate":			LacCount < 3;
+	    "Pulverize":		((!Buff() && LacCount > 1) || 
+	    				 (BuffTime() < 3 && LacCount == 3));
+	    "Maul":			Power() > 70;
+	    "Faerie Swarm":		!MxDebuff(MxDebuffArmor);
+	    "Faerie Fire":		!MxDebuff(MxDebuffArmor);
+	    "Thrash";
+
+	    alternate (3) { "Swipe":		Castable(); };
+	    alternate (3) { "Thrash": 		Castable(); };
+	    alternate (3) { "Maul": 		Castable(); };
+	} else {
+	    // AoE
+	    "Swipe";
+	    "Thrash";
+	    "Demoralizing Roar":	!Debuff();
+
+	    // hit two or three things
+	    "Mangle":		Buff("Berserk");
+	    "Maul":		haveGlyphMaul;
+
+	    // sigh.  no AoEs available.  do single-target if we have good rage
+	    if (Power() >= 50) {
+		"Mangle";
+		"Pulverize":		!Buff() && LacCount > 1; 
+		"Pulverize":		BuffTime() < 3 && LacCount == 3;
+		"Faerie Swarm":		!MxDebuff(MxDebuffArmor);
+		"Faerie Fire":		!MxDebuff(MxDebuffArmor);
+		"Thrash";
+		"Lacerate";
+	    }		
+	}
+    } else {
+	// Kitty Rotation
+	var comboPts, tRip, tRoar, tThrash;
+
+	FailSpell = "Tiger's Fury";
+	FreeSpell = nil;
+
+	clip {
+	    "Savage Roar": 1;
+	    "Rip": 1;
+	    "Rake": 1;
+	};
+
+	strict { "Cat Form": !Buff(); };
+
+	alternate (1) { "Berserk":  		Castable("Berserk"); };
+        alternate (2) { "Force of Nature":    	Castable("Force of Nature"); };
+
+	"Faerie Swarm":	(Boss() || InParty()) && !MxDebuff(MxDebuffArmor);
+	"Faerie Fire": 	(Boss() || InParty()) && !MxDebuff(MxDebuffArmor);
+	"Savage Roar":	!Buff() && Castable();
+
+	// need to do the Natures's Swiftness/Healing Touch for DoC proc here
+
+	tRip = DebuffTime("Rip");
+	tRip = DebuffTime("Savage Roar");
+	tThrash = DebuffTime("Thrash");
+	comboPts = ComboPoints();
+
+	if (comboPts == 5) {
+	    "Ferocious Bite":	TargetHealth() < 25 && tRip < 3;
+	    "Ferocious Bite":	tRip >= 6 && tRoar >= 6;
+	    "Rip":		tRip < 3;
+	}
+	"Rake":			!DebuffByMe();
+	"Thrash":		!Buff("Omen of Clarity") && tThrash < 6;
+	"Ravage":		Castable();
+
+	"Shred":		Castable();
+	"Mangle";
+    }
+}
+
+OutOfCombat {
+    "Mark of the Wild": 	!Mounted() && !MxBuff(MxBuffMark);
+}

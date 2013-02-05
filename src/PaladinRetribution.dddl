@@ -1,0 +1,63 @@
+
+class: Paladin
+build: Retribution
+
+mutex seal (clip = 300, 5) {
+    "Seal of Righteousness",
+    "Seal of Justice",
+    "Seal of Insight",
+    "Seal of Truth",
+};
+
+mutex aura {
+    "Retribution Aura",
+    "Devotion Aura",
+    "Concentration Aura",
+    "Resistance Aura",
+    "Crusader Aura",
+};
+
+var haveGoE = false;
+
+PreCombat {
+    haveGoE = HasGlyph("Glyph of Exorcism");
+}
+
+InCombat ("Divine Plea") {
+    clip {
+    	"Inquisition":	3;
+    };
+
+    alternate { "Zealotry"; };
+    
+    "Seal of Righteousness": 	!MxBuff(seal);
+
+    // if we don't have an aura up, and we are missing one, call for it
+    if (!MxBuffByMe(aura) || BuffByMe("Crusader Aura")) {
+	"Retribution Aura": 	!Buff();
+	"Devotion Aura":	!Buff();
+	"Concentration Aura":	!Buff();
+	"Resistance Aura":	!Buff();
+    }
+
+    "Inquisition":		!Buff() && (HolyPower() >= 3);
+    "Templar's Verdict":	HolyPower() == 5;
+    "Execution Sentence";
+    "Hammer of Wrath";
+    "Exorcism";
+    "Crusader Strike";
+    "Judgement";
+    "Templar's Verdict":	HolyPower() >= 3;
+}
+
+OutOfCombat {
+    if (!MxBuffByMe(aura)) {
+	"Retribution Aura": 	!Buff();
+	"Devotion Aura":	!Buff();
+	"Concentration Aura":	!Buff();
+	"Resistance Aura":	!Buff();
+    }
+
+    "Seal of Righteousness": 	!MxBuff(seal);
+    "Holy Light":		PlayerHealth() < 95;
+}

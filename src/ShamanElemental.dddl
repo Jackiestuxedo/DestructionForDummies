@@ -1,0 +1,41 @@
+class: shaman
+build: elemental
+
+mutex shield (clip = 60, 5) {
+    "Lightning Shield",
+    "Water Shield",
+};
+
+InCombat {
+    clip {
+	"Flametongue Weapon": 1;
+	"Flame Shock": 1;
+    };
+
+    alternate (1) { "Heroism":			    Castable(); };
+    alternate (1) { "Bloodlust": 		    Castable(); };
+    alternate (3) { "Fire Elemental Totem":	    Castable(); };
+
+    "Flametongue Weapon":	!WeaponEnhancement();
+    "Lightning Shield":		!MxBuff(shield);
+
+    var lsTime, lsCount;
+    lsTime, lsCount = BuffInfo("Lightning Shield");
+
+    "Searing Totem":		!TotemType(1);
+    "Flame Shock":		!DebuffByMe();
+    "Lava Burst";
+    "Earth Shock":		lsCount >= 7;
+    "Lightning Bolt";
+}
+
+OutOfCombat {
+    clip {
+	"Flametongue Weapon": 5 * 60;
+    };
+
+    if (!Mounted()) {
+	"Flametongue Weapon":	!WeaponEnhancement();
+	"Lightning Shield":	!MxBuff(shield);
+    }
+}

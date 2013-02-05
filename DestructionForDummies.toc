@@ -1,0 +1,48 @@
+## Interface: 50100
+## Title: Destruction For Dummies
+## Author: Earendil of Elune (US)
+## Version: 3.0.0
+## SavedVariablesPerCharacter: DestroDummiesPCdb
+
+# This must come first
+Variables.lua
+
+# Now the localizations.  These must come before the per-build implementation
+# files
+LocaleEnUS.lua
+LocaleDeDE.lua
+LocaleFrFR.lua
+LocaleLocal.lua
+
+# Implementations for all the builds
+DeathKnightBlood.lua
+DeathKnightFrost.lua
+DeathKnightUnholy.lua
+DruidBalance.lua
+DruidFeral.lua
+HunterBeastmaster.lua
+HunterMarksman.lua
+HunterSurvival.lua
+MageArcane.lua
+MageFire.lua
+MageFrost.lua
+MonkWindwalker.lua
+PaladinRetribution.lua
+PriestShadow.lua
+RogueAssassination.lua
+RogueCombat.lua
+RogueSubtlety.lua
+ShamanElemental.lua
+ShamanEnhancement.lua
+WarlockAffliction.lua
+WarlockDemonology.lua
+WarlockDestruction.lua
+WarriorFury.lua
+WarriorProtection.lua
+
+# These must come after the generated LUA files
+Classes.lua
+Utilities.lua
+
+# This must come last
+DestructionForDummies.lua

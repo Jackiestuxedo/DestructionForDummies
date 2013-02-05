@@ -1,0 +1,68 @@
+// Hey emacs!  This is a -*- c -*- file
+class: DeathKnight
+build: Frost
+
+#include "mutexes.h"
+
+var HaveGoHB, HaveMotFW;
+
+PreCombat {
+    HaveGoHB = HasGlyph("Glyph of Howling Blast");
+    HaveMotFW = Talent("Might of the Frozen Wastes");
+}
+
+InCombat {
+    alternate (1) { "Raise Dead":	Castable(); };
+    alternate (2) { "Pillar of Frost":	Castable(); };
+
+    var disFrost, disBP;    // we will be checking diseases *a lot*
+    disFrost = DebuffByMe("Frost Fever");
+    disBP = DebuffByMe("Blood Plague");
+
+    "Frost Presence":	!Buff();
+
+    if (DualWielding()) {
+	// DW rotation
+        "Soul Reaper":		TargetHealth() < 35;
+
+    	// Diseases
+	"Outbreak":		!disFrost && !disBP;
+	"Howling Blast":	!disFrost && HaveGoHB;
+	"Icy Touch":		!disFrost && HaveRunes(0,1,0);
+    	"Plague Strike":	!disBP;
+
+	// Rest of rotation
+	"Frost Strike":		Buff("Killing Machine");
+    	"Death and Decay":	Castable();
+    	"Obliterate":		Buff("Killing Machine") && disFrost && disBP && 
+    				RuneCount("Unholy") == 2;
+    	"Frost Strike":		Power() >= 100;
+    	"Howling Blast":	Buff("Freezing Fog");	// Rime
+    	"Obliterate":		HaveRunes(0,1,1);
+    	"Frost Strike";
+    	"Howling Blast";
+    	"Horn of Winter";
+    } else {
+	// 2H rotation
+        "Soul Reaper":		TargetHealth() < 35;
+    	"Obliterate":		Buff("Killing Machine") && disFrost && disBP;
+        
+	// Diseases
+	"Outbreak":		!disFrost && !disBP;
+	"Howling Blast":	!disFrost && HaveGoHB;
+	"Icy Touch":		!disFrost && HaveRunes(0,1,0);
+    	"Plague Strike":	!disBP;
+
+	// Rest of rotation
+	"Frost Strike":		Buff("Killing Machine");
+    	"Howling Blast":	Buff("Freezing Fog");	// Rime
+	"Obliterate";
+    	"Frost Strike";
+    	"Horn of Winter";
+    }
+}
+
+OutOfCombat {
+    "Frost Presence":	!Buff();
+    "Horn of Winter":	!MxBuff(MxBuffAgiStr) && !Mounted();
+}

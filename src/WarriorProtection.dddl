@@ -1,0 +1,22 @@
+class: warrior
+build: protection
+
+InCombat {
+    // Have we lost the mob?  If so, Taunt if we can
+    var threatTank, threatStatus;
+    threatTank, threatStatus = Threat();
+    if (!threatTank) {
+	"Taunt";
+    }
+
+    "Commanding Shout":		!Buff();
+    "Shield Slam":		Castable();
+    "Thunderclap":		!Debuff("Thunder Clap");
+    "Demoralizing Shout":	!Debuff();
+    "Revenge";
+    "Devastate";
+}
+
+OutOfCombat {
+    "Commanding Shout":		!Buff();
+}

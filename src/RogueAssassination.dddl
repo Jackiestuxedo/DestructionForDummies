@@ -1,0 +1,71 @@
+class: rogue
+build: assassination
+
+var talentChase, talentMurderous;
+
+Precombat {
+    talentChase = Talent("Cut to the Chase");
+    talentMurderous = Talent("Murderous Intent");
+}
+
+InCombat {
+    alternate {
+	"Vanish":	!Buff("Overkill") && Castable();
+	"Cold Blood":	Castable();
+	"Vendetta":	Castable();
+    };
+    clip {
+	"Slice and Dice":	1.5;
+    };
+
+    var comboPts = ComboPoints();
+    var sndTime = BuffTime("Slice and Dice");
+
+    "Garrote":		Castable();
+
+    /*
+     *  Keep Slice and Dice up.  If it's down and we have CPs, just call for
+     *  it.  If it is up, but will fall off, refresh with Envenom if we can.
+     *  Otherwise just refresh.
+     */
+    if (comboPts > 0) {
+	if (sndTime == 0) {
+	    // SnD is down.  We must cast it
+	    "Slice and Dice";
+	} else {
+	    // SnD is up.  We must refresh it if it's going to fall off
+	    if (!Buff("Slice and Dice")) {
+		"Envenom": 	talentChase > 0 && Debuff("Deadly Poison");
+		"Slice and Dice";
+	    }
+	}
+    }
+
+    /*
+     *  Things get a little tricky here.  If we want to backstab, we
+     *  are going to use it to build combo points up to 5.  Otherwise
+     *  we are going to Mutilate, but only build to 4 CPs.
+     */
+    var finish;
+    var doBackstab = TargetHealth() < 35 && talentMurderous > 0;
+    if (doBackstab) {
+	finish = comboPts == 5;
+    } else {
+	finish = comboPts >= 4;
+    }
+    "Rupture":		!Debuff() && finish;
+    "Envenom":		finish && Debuff("Deadly Poison");
+    "Eviscerate":	finish;		// in case no Deadly Poison
+    "Backstab":		doBackstab;
+    "Mutilate";
+}
+
+OutOfCombat {
+    clip {
+	"Poisons":	5 * 60;
+    };
+    
+    if (!Mounted()) {
+	"Poisons":	!WeaponEnhancement();
+    }
+}

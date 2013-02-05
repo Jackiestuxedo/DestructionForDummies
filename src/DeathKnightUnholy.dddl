@@ -1,0 +1,44 @@
+class: DeathKnight
+build: Unholy
+
+#include "mutexes.h"
+
+InCombat ("Empower Rune Weapon") {
+    alternate (1) { "Summon Gargoyle":	Castable(); };
+    alternate (2) { "Bone Shield":	Castable(); };
+
+    "Soul Reaper":  	  	TargetHealth() < 35;
+
+    "Unholy Presence":		!Buff();
+    "Raise Dead":		!PetExists();
+    
+    "Outbreak":			(!DebuffByMe("Blood Plague") &&
+				 !DebuffByMe("Frost Fever"));
+    "Plague Strike":		!DebuffByMe("Blood Plague");
+    "Icy Touch":		!DebuffByMe("Frost Fever");
+    
+    "Dark Transformation":	Castable();
+    "Death and Decay":		RuneCount("Unholy") == 2;
+    "Scourge Strike":		RuneCount("Unholy") == 2;
+
+    "Festering Strike":		RuneCount("Blood") == 2 &&
+					       RuneCount("Frost") == 2;
+
+    "Death Coil":		Power() > 90 || Buff("Sudden Doom");
+
+    /*
+     *  What follows is weird.  On my client, the cooldown returned for spells
+     *  is the cooldown of the longest rune cooling for it.  On some others'
+     *  clients (maybe Macs?) the cooldown is returned as 0, so I need to
+     *  manually check for runes.
+     */
+    "Scourge Strike":		HaveRunes(0,0,1);	
+    "Festering Strike":		HaveRunes(1,1,0);
+    "Horn of Winter";
+}
+
+OutOfCombat {
+    "Unholy Presence":		!Buff();
+    "Horn of Winter":		!MxBuff(MxBuffAgiStr) && !Mounted();
+    "Raise Dead":		Castable() && !PetExists() && !Mounted();
+}

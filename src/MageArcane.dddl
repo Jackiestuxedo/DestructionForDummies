@@ -1,0 +1,76 @@
+class: mage
+build: arcane
+
+var rotSpot = 0;
+
+mutex armor (clip = 300, 5) {
+    "Molten Armor",
+    "Mage Armor",
+    "Frost Armor",
+};
+
+mutex intel (clip = 300, 5) {
+    "Arcane Brilliance",
+    "Dalaran Brilliance",
+};
+
+var lastSpell = nil;
+
+SpellSent(spell) {
+    lastSpell = spell;
+}
+
+PostSpell (spell, success) {
+    lastSpell = nil;
+}
+
+InCombat ("Evocation") {
+    clip { "Arcane Brilliance":	5; };
+
+    "Mage Armor": 		!MxBuffByMe(armor);
+    "Arcane Brilliance":	!MxBuff(intel);
+
+    // I assume it's best to pop Icy whenever it's available?
+    alternate {
+	"Icy Veins": 		Castable();
+	"Presence of Mind":	Castable();
+	"Arcane Power":		Castable();
+    };
+
+    /*
+     * If Icy is about to expire, this would be a really really good time
+     * to Evocate.  I'm not sure how much mana we're willing to lose to 
+     * catch it though; I'm assuming 5%, but will change if someone who
+     * actually plays an Arcane Mage wants something else
+     */
+    "Evocation":	Buff("Icy Veins") && BuffTime("Icy Veins") < 2 &&
+			Power() < 45;
+
+    var abBuffTime, abBuffCount;
+    abBuffTime, abBuffCount = PlayerDebuffInfo("Arcane Blast");
+
+    // if we are currently casting an Arcane Blast, bump the count
+    if (lastSpell == "Arcane Blast") {
+	abBuffCount = abBuffCount + 1;
+    }
+
+    /*
+     *  This is a tad complex: if we have started stacking Arcane Blast
+     *  buffs, we continue to a stack of 3.  Otherwise, we Missile Barrage
+     *  if we have the buff.  Otherwise we Arcane Barrage if we can.  Lastly,
+     *  we start the Arcane Blast stack
+     */
+    "Arcane Blast": 	abBuffCount >= 1 && abBuffCount < 3;
+    "Arcane Barrage":	Castable();
+    "Arcane Missiles":	Castable();
+    "Arcane Blast";
+
+    // help out low-level mages that don't have AB yet
+    "Fire Blast";
+    "Fireball";
+}
+
+OutOfCombat {
+    "Mage Armor": 		!MxBuffByMe(armor);
+    "Arcane Brilliance":	!MxBuff(intel);
+}

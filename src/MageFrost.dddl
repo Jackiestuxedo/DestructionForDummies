@@ -1,0 +1,48 @@
+class: mage
+build: frost
+
+mutex armor (clip = 300, 5) {
+    "Molten Armor",
+    "Mage Armor",
+    "Frost Armor",
+};
+
+mutex intel (clip = 300, 5) {
+    "Arcane Brilliance",
+    "Dalaran Brilliance",
+};
+
+InCombat ("Evocation") {
+    alternate {
+	"Summon Water Elemental":	!HasPet() && Castable();
+	"Arcane Brilliance":		!MxBuff(intel);
+    };
+    if (!MxBuffByMe(armor)) {
+	"Molten Armor";
+	"Mage Armor";		// In case they don't have Molten yet
+    }
+
+    "Frostfire Orb";
+
+    if (Buff("Fingers of Frost")) {
+        "Deep Freeze";
+        "Frostfire Bolt":	Buff("Brain Freeze");
+        "Ice Lance";
+    } else {
+        // This is cast by the Water Elemental.  I don't know how to
+	// make my add-on elegantly show this icon, given that it's the
+	// only time we need to recommend a spell the user cannot cast.
+	// I'll fix this when someone notices I don't actually display it.
+	"Freeze":		HasPet();
+    }
+
+    "Frostbolt";
+}
+
+OutOfCombat {
+    if (!MxBuffByMe(armor)) {
+	"Molten Armor";
+	"Mage Armor";		// In case they don't have Molten yet
+    }
+    "Arcane Brilliance":	!MxBuff(intel);
+}

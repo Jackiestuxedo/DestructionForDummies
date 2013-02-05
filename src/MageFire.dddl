@@ -1,0 +1,50 @@
+class: mage
+build: fire
+
+mutex armor (clip = 300, 5) {
+    "Molten Armor",
+    "Mage Armor",
+    "Frost Armor",
+};
+
+mutex intel (clip = 300, 5) {
+    "Arcane Brilliance",
+    "Dalaran Brilliance",
+};
+
+InCombat ("Evocation") {
+    if (!MxBuffByMe(armor)) {
+	"Molten Armor";
+	"Mage Armor";		// In case they don't have Molten yet
+    }
+
+    alternate { 
+	"Combustion":		!Buff();
+	"Incanter's Ward":	!Buff();
+	"Mirror Image":		Castable();
+    };
+
+    if (Buff("Heating Up") && Buff("Hot Streak")) {
+	"Living Bomb":		!DebuffByMe();
+	"Fireball";
+	"Pyroblast";
+    }
+    "Inferno Blast":		Buff("Heating Up");
+    "Living Bomb":		!DebuffByMe();
+    "Nether Tempest":		!DebuffByMe();
+    "Frost Bomb":		!DebuffByMe();
+    "Pyroblast":		Buff("Hot Streak");
+
+    "Arcane Brilliance":	!MxBuff(intel);
+
+    "Frostfire Bolt";
+    "Fireball";
+}
+
+OutOfCombat {
+    if (!MxBuffByMe(armor)) {
+	"Molten Armor";
+	"Mage Armor";		// In case they don't have Molten yet
+    }
+    "Arcane Brilliance":	!MxBuff(intel);
+}

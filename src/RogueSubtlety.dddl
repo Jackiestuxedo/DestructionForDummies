@@ -1,0 +1,46 @@
+class: Rogue
+build: Subtlety
+
+var haveER;
+
+PreCombat {
+    haveER = Talent("Energetic Recovery") > 0;
+}
+
+InCombat {
+    clip {
+	"Slice and Dice":	2;
+	"Recuperate":		3;
+    };
+    alternate {
+	"Shadow Dance":		Castable();
+	"Preparation":		Castable();
+    };
+
+    var comboPts = ComboPoints();
+
+    "Hemorrhage":		!Debuff();
+    "Slice and Dice":		!Buff() && comboPts > 0;
+    
+    if (comboPts == 5) {
+        "Rupture":		!Debuff();
+	"Slice and Dice":	BuffTime() < 6;
+	"Recuperate":		haveER && !Buff();
+	"Eviscerate";
+    }
+    "Ambush":			Castable();
+    "Backstab";
+}
+
+OutOfCombat {
+    clip {
+	"Poisons":	5 * 60;
+    };
+    
+    if (!Mounted()) {
+	"Poisons":	!WeaponEnhancement();
+    }
+
+    "Stealth":		Boss() && !Buff();
+    "Premeditation":	Boss() && Castable();
+}

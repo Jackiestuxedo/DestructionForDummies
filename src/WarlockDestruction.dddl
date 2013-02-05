@@ -1,0 +1,105 @@
+class: warlock
+build: destruction
+
+mutex bane {
+    "Bane of Agony",
+    "Bane of Doom",
+    "Bane of Havoc",
+};
+
+mutex curse (clip = 1) {
+    "Curse of the Elements",
+    "Curse of Tongues",
+    "Curse of Weakness",
+    "Curse of Exhaustion",
+};
+
+mutex armor (clip = 300, 5) {
+    "Fel Armor",
+    "Demon Armor",
+};
+
+mutex corruption (clip = 1) {
+    "Corruption",
+    "Seed of Corruption",
+};
+
+mutex spellcrit (clip = 1) {
+    "Shadow and Flame",
+    "Critical Mass",
+    "Winter's Chill",
+};
+
+mutex hastebuff (clip = 1) {
+    "Heroism",
+    "Bloodlust",
+    "Time Warp",
+    "Ancient Hysteria",
+    "Improved Soul Fire",
+};
+
+var HaveSandF, HaveImpSF, bossFight;
+PreCombat {
+    HaveSandF = Talent("Shadow and Flame") > 1;
+    HaveImpSF = Talent("Improved Soul Fire") > 1;
+    bossFight = false;
+}
+
+InCombat ("Life Tap") {
+    clip { 
+        "Shadow and Flame": 1;
+	"Immolate": 1;
+    };
+
+    alternate(1) { "Summon Doomguard":		Castable(); };
+    alternate(3) { "Demon Soul":		Castable(); };
+    alternate(4) { "Health Funnel":		PetHealth() < 40; };
+
+    /*
+     *  This preamble is the same for all Warlocks, and is not from EJ
+     *  We need to regain soul shards if we can, keep our pet alive, and
+     *  make sure we have a CoE up, and make sure we have Fel Armor up
+     */
+    bossFight = Boss() || bossFight;	// will be true if we've seen a boss
+
+    // regain soul shards if we can and have less than 2
+    "Shadowburn":    	bossFight && !Boss() && TimeToDie() < 5 &&
+    			SoulShardCount() < 2;
+
+    "Fel Armor":        !MxBuffByMe(armor);
+    "Dark Intent":	!Buff();
+
+    // there should be a CoE up on a boss
+    "Curse of the Elements":	!MxDebuffByMe(curse) && !Debuff() && Boss();
+
+    /*
+     *  End of preamble
+     */
+
+
+    // cast soul fire either because we need the buff, or because we just
+    // did a Soulburn and need to cast this now
+    "Soul Fire":	!LastCast() && 
+                        ((HaveImpSF && !MxBuff(hastebuff)) || 
+			 Buff("Soulburn"));
+
+    "Immolate":         !DebuffByMe() && !LastCast();
+    "Conflagrate":      Castable();
+    "Bane of Doom":	!MxDebuffByMe(bane) && TimeToDie() > 15;
+    "Corruption":	!DebuffByMe();
+    "Shadowburn":	TargetHealth() <= 20;
+    "Shadowflame":	Distance() <= 11.1;	// trial and error for distance
+    "Soul Fire":	Buff("Empowered Imp");
+    "Chaos Bolt";
+    "Incinerate";
+    "Shadow Bolt";	// in case they don't have Incinerate yet
+}
+
+OutOfCombat ("Life Tap") {
+    if (!Mounted()) {
+	"Fel Armor":        !MxBuffByMe(armor);
+	"Summon Imp": 	    !HasPet();
+	"Dark Intent":	    !Buff();
+	"Soul Harvest":	    !Buff() && (SoulShardCount() < 3 || PlayerHealth() < 95);
+    }
+}

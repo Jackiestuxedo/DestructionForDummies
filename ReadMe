@@ -1,0 +1,145 @@
+This file is for people who want to make changes to this add-on.  If you
+just want to run it, you don't need to worry about any of this stuff.
+
+
+If you are looking to add or modify rules for a class, you will need
+to write your code in DDDL, the language the classes' LUA files are
+generated from.
+
+The DDDL parser is located in the dddl directory, the source files that
+generate the class LUA files are in src.
+
+You should be able to just do a make in this directory and everything
+will be made for you.  If you are not on a Unix system, this will
+probably not work.  Sorry.  (If you are on a Mac, you are actually on
+a Unix system, but Unix is complex enough that I cannot teach you how
+to use it.  You will need to open the Terminal application, use the cd
+command to get to this directory, and then issue the make command).
+
+The DDDL language is kind of convoluted (almost as if I wrote it as I
+went instead of designing it ahead of time).  Note that almost nothing
+is optional -- curly brackets, for example, are always mandatory in
+if statements.
+
+I'll give a brief summary, but it's a simple language and you'll pick
+up most of it with a quick read of one of the implemented classes.
+Survival Hunters is probably the best mix of complex stuff (aspects)
+and simple stuff (attacks).
+
+Whitespace is ignored.
+
+A file begins with directives detailing the class and build.  Then comes
+the file variables, then there is the combat section followed by the
+out of combat section.
+
+Variables: you can use the "var" statement to declare local variables, or
+"mutex" to declare a mutex (a list of mutually exclusive spells or buffs).
+Variables can be simple or array.  You can either declare a list of
+variables on a line, or you can init one variable with the declaration,
+but you can't declare and initialize multiple variables at the same time
+(this is necessary because one function can return multiple values,
+so a line like "var x, y = foo();" is ambiguous--does it declare x and
+y and set them equal to the first and second values returned by foo(),
+or does it declare x as an uninitialized local variable and y as the
+first value returned by foo()?).
+
+Mutexes: mutexes are designed to hold things that are mutually exclusive
+(warlock curses, hunter aspects, Mark/Gift of the Wild, etc).  You can
+specify clip times (explained below) when declaring them.  If you
+specify one clip time, it will be used whether in or out of combat,
+if you specify two, then the first one is the Out-Of-Combat clip time,
+the second the In-Combat clip time.
+
+Sections: when you declare a section, you can optionally include a
+spell inside parens (the way HunterSurvival.dddl declares it's combat
+section with Aspect of the Viper).  That spell is the one we will use
+if you lack sufficient power (energy, mana, etc) to cast the spell we
+think you should.  Inside the section, there are 3 parts: the clips,
+the strict, and the rotation.
+
+Clips: A clip is the amount of time you want to clip a buff/debuff by
+(in seconds).  This is in addition to the cast time; normally we will
+recommend refreshing a buff/debuff when the cast time will exceed the
+time left on the buff, adding a clip will cause us to recommend it that
+much earlier.  Note that the clip goes on the spell that you will cast to
+apply the buff/debuff, not on the resulting buff (see DruidFeral.dddl's
+use of Mangle clips for an example).
+
+Strict: The strict section, if it appears, is for handling things that
+that are absolute requirements, like Cat Form for feral druids (see
+DruidFeral.dddl).  It's to be used for things that must in in place or
+the rest of the rotation doesn't make sense (I cannot think of any other
+class that ought to need it, honestly).
+
+Rotation: the rotation is the heart of the system--it's where you specify
+what spells you want to cast, in what order.  The first castable spell
+with a true predicate will be selected.  The basic format of an entry is
+
+	<spellname> [ ':' <predicate> ] ';'
+
+This is exactly equivalent to
+
+	if (<predicate>) {
+	    <spellname>;
+	}
+
+it's just shorter.  If there is no predicate, than the spell will be
+selected.
+
+
+Alternates: this is a block of code that allows you to specify an
+alternate recommendation; it is to be used for long-cooldown spells
+that the user may need to hold until called for by the raid leader
+(think Heroism, for example).  It will be shown in the little panel
+to the side of the main recommendation.  As I write this, only one of
+these is supported, but I'll be adding support for up to four I think.
+Yell at me if you need it done.
+
+
+Variables: you can declare variables inside the rotation if you like.
+They will be available from the declaration point down, in it's scope.
+(They'll act the way you expect them to).
+
+
+Control statements: DDDL supports the following control statments.
+The <rotation> inside supports any of the rotation elements, including
+nesting control structures.
+
+    if statements:
+	    if ( <expression> ) {
+		<rotation>
+	    [ } elseif ( <expression> ) { ]
+		<rotation>
+	    [ } else { ]
+		<rotation>
+	    }
+    Note that the curlies are mandatory, and you can have as many elseif's
+    as you like.
+
+
+    switch statements:
+	switch (<expression>) {
+	    case <expression>: [case <expression>:] {
+		<rotation>
+	    }
+
+	    [default: {
+		<rotation>
+	    }]
+	}
+    Note that you can have as many cases as you like sharing the same
+    rotation body.  Note also that these are *not* fall-through cases.
+    They are exactly equivalent to a big if-elseif chain (which is what
+    they get translated into if you check the generated LUA code)
+
+
+Built-in functions: rather than give access to the Warcraft API directly,
+I have implemented built-ins to use instead (that way if you have a syntax
+error you will discover it at compile time instead of after you reload
+your UI.  It's a huge time savings).  You can find all the built-in
+functions in dddl/lexer.l, in the routine lex_init().  I try to keep a
+list in dddl/parser.y, but it's out of date as I write this, so you are
+probably better off just reading the code.  Any string associated with
+a T_BUILTIN_* is a builtin function.  Just grep for it's being used in
+existing code to see what it does.  Or pester me and I'll write up an
+actual API.

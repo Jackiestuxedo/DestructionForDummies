@@ -1,0 +1,75 @@
+class: hunter
+build: beastmaster
+
+Mutex MxSting {
+    "Serpent Sting",
+    "Wyvern Sting",
+};
+
+Mutex MxMark {
+    "Marked for Death",
+    "Hunter's Mark",
+};
+
+InCombat {
+    var pHealth;
+    var ranged;
+
+    pHealth = PetHealth();
+
+    alternate {
+	"Revive Pet": 		pHealth == nil || pHealth == 0;
+	"Rapid Fire":		Castable();
+    };
+
+    if (pHealth == nil) {
+    	pHealth = 0;
+    }
+
+    ranged = RangedCombat("Auto Shot");
+
+    "Mend Pet":			!PetBuff() && pHealth > 0 && pHealth < 50;
+    "Hunter's Mark":		!MxDebuff(MxMark) && ranged;
+    call DoAspect(1, ranged);
+
+    // what follows is normal rotation.  don't pester them in minimal help mode
+    if (FerralMode()) {
+	"Serpent Sting":	ranged && !MxDebuffByMe(MxSting) && !LastCast();
+    } else {
+	if (ranged) {
+	    var frenzyTime, frenzyCount;
+	    frenzyTime, frenzyCount = PetBuffInfo("Frenzy Effect");
+
+	    "Bestial Wrath": 	Castable() && Castable("Kill Command");
+	    "Kill Command";		   // don't call if Bestial Wrath within 6 seconds of ready +++
+	    "Kill Shot":	TargetHealth() <= 20;
+	    "Fervor":		Power() < 50;
+	    "Focus Fire":	frenzyCount == 5;
+	    "Serpent Sting":	!MxDebuffByMe(MxSting) && !LastCast();
+	    "Arcane Shot":	Power() > 65;
+	    "Mend Pet":		!PetBuff() && pHealth > 0 && pHealth < 70;
+	    "Cobra Shot";
+	    "Steady Shot";
+	} else {
+	    // melee combat
+	    "Disengage";
+	    "Raptor Strike":	Castable();
+	    "Wing Clip":	Castable();
+	}
+    }
+}
+
+OutOfCombat {
+    // don't bug them about aspects or pets if they are mounted
+    if (!Mounted()) {
+	call DoAspect(nil, nil);
+	var pHealth = PetHealth();
+	var withPet = HasPet();
+	if (pHealth == nil) {
+	    "Revive Pet";
+	} else {
+	    "Call Pet":	!PetExists();
+	    "Mend Pet":	withPet && (pHealth > 0 && pHealth < 90 && !PetBuff());
+	}
+    }
+}

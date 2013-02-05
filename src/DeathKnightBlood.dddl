@@ -1,0 +1,150 @@
+class: DeathKnight
+build: Blood
+
+#include "mutexes.h"
+
+var startTime;		// start time of the current window (window[0])
+var window[];		// damage in the last few windows
+var nWindows = 5;	// length of the window, in seconds
+
+var doDND;		// don't recommend Death and Decay until we've seen it
+
+// rotate the windows to reflect the current time
+function rotateWindows () {
+    var now, i;
+
+    now = floor(Uptime());
+    while (now > startTime) {
+	// the dawn of a new window.  rotate all windows back one
+	i = nWindows - 2;
+	while (i >= 0) {
+	    window[i + 1] = window[i];
+	    i = i - 1;
+	}
+	window[0] = 0;
+	startTime = startTime + 1;
+    }
+}
+
+PreCombat {
+    var i;
+
+    i = 0;
+    while (i < nWindows) {
+	window[i] = 0;
+	i = i + 1;
+    }
+    startTime = floor(Uptime());
+
+    doDND = false;
+}
+
+TakeDamage (amount) {
+    // add this damage
+    call rotateWindows();
+    window[0] = window[0] + amount;
+}
+
+SpellSent (spell) {
+    if (spell == "Death and Decay") {
+	doDND = true;
+    }
+}
+
+InCombat {
+    alternate (1) { "Dancing Rune Weapon":	Castable(); };
+    alternate (2) { "Raise Dead":		!HasPet() && Castable(); };
+    alternate (3) { "Death and Decay":		Castable(); };
+    alternate (4) { "Empower Rune Weapon":	Castable(); };
+
+    clip {
+	"Blade Barrier": 3;
+    };
+
+    "Blood Presence":	!Buff();
+    "Bone Shield":	!Buff() && HaveRunes(0,0,1);
+
+    /*
+     *  First question: is threat an issue?  If so, we need to do a
+     *  high-threat move.  Particularly if we've lost the mob.
+     *
+     *  Of course, this only matters if we are in a group.  If we are
+     *  soloing (Blood is a great spec to quest in) then don't worry
+     *  about threat.
+     *
+     *  Also, don't try to taunt off another tank.
+     */
+    if (!Solo() && !OnTank()) {
+	var threatTank, threatStatus;
+	threatTank, threatStatus = Threat();
+	if (threatTank == 0) {
+	    // We've lost the mob.  Get it back if we can
+	    "Dark Command";
+	    "Death Grip":		!Tapped();
+	}
+	if (threatTank == 0 || threatStatus != 3) {
+	    // We are not securely tanking.  Do a high-threat move
+	    "Rune Strike":		Power() >= 30;
+	    "Death and Decay":		doDND && HaveRunes(0,0,1);
+	    "Heart Strike":		HaveRunes(1,0,0);
+	}
+    }
+    
+    // Is our health low and have we taken a lot of damage recently?  And
+    // can we do a Death Strike?  (This is slow to figure out, and if we
+    // don't have the runes, there's no point worrying about it)
+    if (PlayerHealth() <= 50 && HaveRunes(0,1,1)) {
+	call rotateWindows();
+
+	var totalDam = window[0]+ window[1] + window[2] + window[3] + window[4];
+	var maxHP = RawPlayerMaxHealth();
+	var curHP = RawPlayerHealth();
+	var missHP = maxHP - curHP;
+
+	var dsHP = 0.2 * totalDam;	// the amount of HP I get back
+	if (dsHP < 0.07 * maxHP) {
+	    dsHP = 0.07 * maxHP;
+	}
+	
+	// We'll DS if we will get back at least 15% of our missing HP
+	"Death Strike":	 dsHP >= (0.15 * missHP);
+    }
+
+    // We need diseases for the damage reduction, and the Frost Fever slow
+    "Outbreak":		(!DebuffByMe("Frost Fever") &&
+			 !DebuffByMe("Blood Plague"));
+    "Icy Touch":	(!DebuffByMe("Frost Fever") && !LastCast() &&
+			 !LastCast("Outbreak") && HaveRunes(0,1,0));
+    "Plague Strike":	(!DebuffByMe("Blood Plague") && !LastCast("Outbreak") &&
+			 HaveRunes(0,0,1));
+    
+
+    "Soul Reaper":	TargetHealth() < 35;
+
+    // Make sure we have at least one of each rune cooling
+    "Death Strike":	RuneCount("Frost") == 2 && RuneCount("Unholy") == 2;
+    "Heart Strike":	RuneCount("Blood") == 2;
+
+    // Do we need blade barrier?
+    "Heart Strike":	!Buff("Blade Barrier") && HaveRunes(1,0,0);
+
+    // If we get here, we might as well turn a blood rune into a death rune
+    "Blood Tap":	RuneCount("Blood") > 1;
+
+    // Nothing important to do.  Just do something (but make sure we don't
+    // use Death runes to do it)
+    "Rune Strike":	Power() >= 30;
+    "Death Coil":	Power() >= 50;	// For low-level DKs w/o Rune Strike
+    "Death and Decay":	doDND && RuneCount("Unholy") >= 1;
+    "Heart Strike":	RuneCount("Blood") >= 1;
+    "Horn of Winter";
+}
+
+OutOfCombat {
+    "Blood Presence":		!Buff();
+
+    if (!Mounted()) {
+	"Bone Shield":		!Buff() && Castable();
+	"Horn of Winter":	!MxBuff(MxBuffAgiStr);
+    }
+}

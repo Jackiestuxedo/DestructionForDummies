@@ -1,0 +1,129 @@
+class: warlock
+build: affliction
+
+mutex bane {
+    "Bane of Agony",
+    "Bane of Doom",
+    "Bane of Havoc",
+};
+
+mutex curse (clip = 1) {
+    "Curse of the Elements",
+    "Curse of Tongues",
+    "Curse of Weakness",
+    "Curse of Exhaustion",
+};
+
+// for some reason, Unstable Affliction and Immolate are tied together
+mutex unst_immo (clip = 1) {
+    "Unstable Affliction",
+    "Immolate",
+};
+
+mutex corruption (clip = 1) {
+    "Corruption",
+    "Seed of Corruption",
+};
+
+mutex armor (clip = 300, 5) {
+    "Fel Armor",
+    "Demon Armor",
+};
+
+mutex spellcrit (clip = 1) {
+    "Shadow and Flame",
+    "Critical Mass",
+    "Winter's Chill",
+};
+
+mutex hastebuff (clip = 1) {
+    "Heroism",
+    "Bloodlust",
+    "Time Warp",
+    "Ancient Hysteria",
+    "Improved Soul Fire",
+};
+
+
+var HaveImpSF, HaveSandF, HaveShadowEmbrace, bossFight;
+
+PreCombat {
+    // looking up talents is slow, so do it just once
+    HaveShadowEmbrace = (Talent("Shadow Embrace") > 1);
+    HaveSandF = Talent("Shadow and Flame") > 1;
+    HaveImpSF = Talent("Improved Soul Fire") > 1;
+    bossFight = false;
+}
+
+InCombat ("Life Tap") {
+    clip {
+	"Haunt":	FlightTime();
+    };
+
+    alternate (1) { "Summon Doomguard": Castable(); };
+    alternate (3) { "Demon Soul":	Castable(); };
+    alternate (4) { "Health Funnel":	PetHealth() < 40; };
+
+    /*
+     *  This preamble is the same for all Warlocks, and is not from EJ
+     *  We need to regain soul shards if we can, keep our pet alive, and
+     *  make sure we have a CoE up, and make sure we have Fel Armor up
+     */
+    bossFight = Boss() || bossFight;	// will be true if we've seen a boss
+
+    // regain soul shards if we can and have less than 2
+    "Shadowburn":    	bossFight && !Boss() && TimeToDie() < 5 &&
+    			SoulShardCount() < 2;
+
+    "Fel Armor":        !MxBuffByMe(armor);
+    "Dark Intent":	!Buff();
+
+    // there should be a CoE up on a boss
+    "Curse of the Elements":	!MxDebuffByMe(curse) && !Debuff() && Boss();
+
+    /*
+     *  End of preamble
+     */
+
+
+
+
+    // cast soul fire either because we need the buff, or because we just
+    // did a Soulburn and need to cast this now
+    "Soul Fire":	!LastCast() && 
+                        ((HaveImpSF && !MxBuff(hastebuff)) || 
+			 Buff("Soulburn"));
+
+    // This is a departure from EJ, but I think it's right
+    "Shadow Bolt":	Buff("Nightfall") || Buff("Shadow Trance") ||
+			(InRaid() && !LastCast() && HaveSandF &&
+			 !MxDebuff(spellcrit));
+
+
+    "Corruption":		!MxDebuffByMe(corruption);
+    "Unstable Affliction":	!MxDebuffByMe(unst_immo) && !LastCast();
+    "Bane of Doom":		!MxDebuffByMe(bane) && TimeToDie() > 15;
+    "Haunt":			!LastCast();
+
+    // do we need to bump Shadow Embrace?
+    if (HaveShadowEmbrace) {
+    	var SEtime, SEcount;
+
+	SEtime, SEcount = DebuffInfo("Shadow Embrace");
+	"Shadow Bolt":		SEcount < 3;
+    }
+
+    "Drain Soul":		TargetHealth() < 25;
+    "Shadowflame":		Distance() <= 11.1;
+    "Shadow Bolt";
+}
+
+OutOfCombat ("Life Tap") {
+    if (!Mounted()) {
+	"Fel Armor":        !MxBuffByMe(armor);
+	"Summon Felhunter": !HasPet();
+	"Summon Imp":	    !HasPet();  // in case no succubus yet
+	"Dark Intent":	    !Buff();
+	"Soul Harvest":	    !Buff() && (SoulShardCount() < 3 || PlayerHealth() < 95);
+    }
+}

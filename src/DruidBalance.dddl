@@ -1,0 +1,135 @@
+// Hey emacs!  This is a -*- c -*- file!
+
+class: druid
+build: balance
+
+var nextEclipseLunar = true;
+var certainEclipseDir = false;
+var forceEclipse = false;
+var hasMoonkin;
+var lastLunarPower;
+
+Mutex MxArmor {
+    "Expose Armor",
+    "Faerie Fire",
+    "Faerie Fire (Feral)",
+};
+
+mutex markBuff (clip = 5) {
+    "Mark of the Wild",
+    "Blessing of Kings",
+};
+
+
+PreCombat {
+    lastLunarPower = LunarPower();
+    nextEclipseLunar = (lastLunarPower < 0);	// hope we are on the right side
+    certainEclipseDir = false;
+    hasMoonkin = Known("Moonkin Form"); // slow, so only do once per combat
+}
+
+SpellSent (spell) {
+    // look for Wraths or Starfires that are going to force an eclipse
+    
+    if (nextEclipseLunar) {
+	switch (spell) {
+	    // lunar eclipse seems to happen at -99, not -100
+	    case "Wrath": {
+		forceEclipse = ((LunarPower() - 13) <= -99);
+	    }
+	    case "Starsurge": {
+		forceEclipse = ((LunarPower() - 15) <= -99);
+	    }
+        }
+    } else {
+	switch (spell) {
+	    case "Starfire": {
+		forceEclipse = ((LunarPower() + 20) >= 100);
+	    }
+	    case "Starsurge": {
+		forceEclipse = ((LunarPower() + 15) >= 100);
+	    }
+	}
+    }
+}
+
+PostSpell (spell, succeed) {
+    // there is a window where the spell is done but the LunarPower() is not
+    // yet updated.  so we need to leave it set until Eclipse is seen
+    if (!succeed) {
+	forceEclipse = nil;
+    }
+}
+
+
+InCombat {
+    clip {
+    	"Moonfire": 	1;
+	"Sunfire":	1;
+	"Insect Swarm":	1;
+	"Faerie Fire":	3;
+    };
+
+    var FFtime, FFcount;
+    FFtime, FFcount = DebuffInfo("Faerie Fire");
+    alternate {
+        "Force of Nature":    	Castable("Force of Nature");
+	"Faerie Fire":		!MxDebuff(MxArmor);
+	"Starfall":		Castable() && Buff("Eclipse (Lunar)");
+	"Typhoon":		Castable() && Buff("Eclipse (Solar)");
+	"Solar Beam":		Castable();
+    };
+
+    "Moonkin Form": 	!Buff() && hasMoonkin;
+
+    // if we are not sure which direction we are going, check the lunar power
+    if (!certainEclipseDir) {
+	var curLunarPower = LunarPower();
+
+	if (curLunarPower < lastLunarPower) {
+	    nextEclipseLunar = true;
+	    certainEclipseDir = true;
+	} elseif (curLunarPower > lastLunarPower) {
+	    nextEclipseLunar = false;
+	    certainEclipseDir = true;
+	}
+    }
+
+    // if we are about to Eclipse, hold off on DoTs and Starsurge
+    if (!((nextEclipseLunar && ((LunarPower() - 13) <= -99)) ||
+	  (!nextEclipseLunar && ((LunarPower() + 20) >= 100)))) {
+	"Insect Swarm":		!DebuffByMe();
+	"Moonfire":		!DebuffByMe() && !DebuffByMe("Sunfire");
+	"Starsurge":		!LastCast();
+    }
+
+    if (Buff("Eclipse (Lunar)")) {
+	// in Lunar Eclipse
+    	nextEclipseLunar = false;
+	forceEclipse = false;
+	"Starfire";
+    } elseif (Buff("Eclipse (Solar)")) {
+	// In Solar Eclipse
+    	nextEclipseLunar = true;
+	forceEclipse = false;
+	"Wrath";
+    } elseif (nextEclipseLunar) {
+	// pre-Lunar Eclipse
+	if (forceEclipse) {
+	    "Starfire";
+	} else {
+	    "Wrath";
+	}
+    } else {
+	// pre-Solar Eclipse
+	if (forceEclipse) {
+	    "Wrath";
+	} else {
+	    "Starfire";
+	}
+    }
+}
+
+OutOfCombat {
+    "Mark of the Wild": 	!Mounted() && !MxBuff(markBuff);
+}
