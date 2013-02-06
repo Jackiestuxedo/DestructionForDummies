@@ -1,0 +1,6722 @@
+Grammar
+
+    0 $accept: file $end
+
+    1 $@1: /* empty */
+
+    2 file: header .optstuff $@1 calledRoutines
+
+    3 $@2: /* empty */
+
+    4 $@3: /* empty */
+
+    5 header: T_CLASS ':' T_ID $@2 T_BUILD ':' T_ID $@3
+
+    6 vardecl: T_VAR vardecl_line ';'
+
+    7 $@4: /* empty */
+
+    8 vardecl: T_MUTEX mutexname $@4 .mutexclip '{' mx_spellist '}' ';'
+
+    9 $@5: /* empty */
+
+   10 vardecl: T_EXTERN T_ID $@5 ';'
+
+   11 .mutexclip: /* empty */
+   12           | '(' T_CLIP '=' exp ')'
+   13           | '(' T_CLIP '=' exp ',' exp ')'
+
+   14 mx_spellist: mx_spell ','
+   15            | mx_spellist mx_spell ','
+
+   16 mx_spell: T_SPELL
+
+   17 vardecl_line: vardeclent
+   18             | vardecl_line ',' vardeclent
+
+   19 $@6: /* empty */
+
+   20 $@7: /* empty */
+
+   21 vardeclent: varname $@6 .array $@7 .init
+
+   22 mutexname: T_ID
+   23          | T_MUTEXVAR
+
+   24 varname: T_ID
+   25        | T_VARIABLE
+
+   26 .array: /* empty */
+   27       | '[' ']'
+
+   28 .init: /* empty */
+   29      | single_init
+   30      | array_init
+
+   31 single_init: '=' exp
+
+   32 array_init: '=' '{' array_init_lines '}'
+
+   33 array_init_lines: array_init_line
+   34                 | array_init_lines array_init_line
+
+   35 array_init_line: '[' exp ']' exp ','
+
+   36 .optstuff: /* empty */
+   37          | optstuff
+
+   38 optstuff: optthang
+   39         | optstuff optthang
+
+   40 optthang: vardecl
+
+   41 calledRoutines: calledRoutine
+   42               | calledRoutines calledRoutine
+
+   43 calledRoutine: incombat
+   44              | oocombat
+
+   45 $@8: /* empty */
+
+   46 calledRoutine: T_PRECOMBAT '{' $@8 rotation '}'
+
+   47 $@9: /* empty */
+
+   48 calledRoutine: T_POSTSPELL '(' parameter ',' parameter ')' '{' $@9 rotation '}'
+
+   49 $@10: /* empty */
+
+   50 calledRoutine: T_TAKE_DAMAGE '(' parameter ')' '{' $@10 rotation '}'
+
+   51 $@11: /* empty */
+
+   52 calledRoutine: T_TAKE_HEAL '(' parameter ')' '{' $@11 rotation '}'
+
+   53 $@12: /* empty */
+
+   54 calledRoutine: T_SPELLSENT '(' parameter ')' '{' $@12 rotation '}'
+
+   55 @13: /* empty */
+
+   56 @14: /* empty */
+
+   57 calledRoutine: T_FUNCTION T_ID @13 '(' .paramlist ')' '{' @14 rotation '}'
+
+   58 .paramlist: /* empty */
+   59           | paramlist
+
+   60 paramlist: parameter
+   61          | paramlist ',' parameter
+
+   62 parameter: T_ID
+   63          | exp
+
+   64 $@15: /* empty */
+
+   65 incombat: T_COMBAT .pick_opts $@15 '{' combatstuff '}'
+
+   66 .pick_opts: /* empty */
+   67           | '(' just_one_opt ')'
+   68           | '(' pick_opts ')'
+
+   69 just_one_opt: T_SPELL
+   70             | variable
+
+   71 pick_opts: pick_opt
+   72          | pick_opts ',' pick_opt
+
+   73 pick_opt: failspell
+   74         | freespell
+
+   75 failspell: T_FAIL '=' T_SPELL
+   76          | T_FAIL '=' variable
+
+   77 freespell: T_FREE '=' T_SPELL
+   78          | T_FREE '=' variable
+
+   79 $@16: /* empty */
+
+   80 oocombat: T_OUTOFCOMBAT $@16 .pick_opts '{' combatstuff '}'
+
+   81 $@17: /* empty */
+
+   82 combatstuff: $@17 rotation
+
+   83 $@18: /* empty */
+
+   84 alternate: T_ALTERNATE .alt_number '{' $@18 rotation '}' ';'
+
+   85 .alt_number: /* empty */
+   86            | '(' T_INTEGER ')'
+
+   87 clips: T_CLIP '{' clipents '}' ';'
+
+   88 clipents: clip
+   89         | clipents clip
+
+   90 $@19: /* empty */
+
+   91 clip: T_SPELL $@19 ':' exp ';'
+
+   92 $@20: /* empty */
+
+   93 $@21: /* empty */
+
+   94 strict: T_STRICT '{' $@20 rotation '}' $@21 ';'
+
+   95 rotation: rotation_entry
+   96         | rotation rotation_entry
+
+   97 .spell_predicate: /* empty */
+   98                 | ':' exp
+
+   99 print_statement: T_PRINT '(' stuff2print ')' ';'
+
+  100 stuff2print: printThang
+  101            | stuff2print ',' printThang
+
+  102 printThang: exp
+  103           | string
+
+  104 string: T_STRING
+
+  105 .spell_mintime: /* empty */
+  106               | '/' spell
+
+  107 rotation_entry: ';'
+  108               | print_statement
+  109               | strict
+  110               | clips
+
+  111 $@22: /* empty */
+
+  112 rotation_entry: spell $@22 .spell_mintime .spell_predicate ';'
+  113               | T_NIL ':' exp ';'
+
+  114 @23: /* empty */
+
+  115 rotation_entry: T_SWITCH '(' exp ')' '{' @23 .case_statements .default_statement '}'
+
+  116 $@24: /* empty */
+
+  117 rotation_entry: T_WHILE '(' exp ')' '{' $@24 rotation '}'
+
+  118 $@25: /* empty */
+
+  119 rotation_entry: T_IF '(' exp ')' '{' $@25 rotation '}' .elseifs .else
+  120               | vardecl
+  121               | alternate
+  122               | varlist '=' exp ';'
+
+  123 @26: /* empty */
+
+  124 rotation_entry: T_CALL T_ID @26 '(' .paramlist ')' ';'
+
+  125 varlist: variable
+  126        | varlist ',' variable
+
+  127 t_variable: T_VARIABLE
+
+  128 t_externvariable: T_EXTERNVARIABLE
+
+  129 variable: t_variable .arrayindex
+  130         | t_externvariable .arrayindex
+
+  131 .case_statements: /* empty */
+  132                 | case_statements
+
+  133 case_statements: case_statement
+  134                | case_statements case_statement
+
+  135 $@27: /* empty */
+
+  136 $@28: /* empty */
+
+  137 case_statement: $@27 caselines $@28 '{' rotation '}'
+
+  138 caselines: one_case
+  139          | caselines one_case
+
+  140 one_case: T_CASE exp ':'
+
+  141 .default_statement: /* empty */
+
+  142 $@29: /* empty */
+
+  143 .default_statement: T_DEFAULT ':' '{' $@29 rotation '}'
+
+  144 .elseifs: /* empty */
+  145         | elseifs
+
+  146 elseifs: elseif
+  147        | elseifs elseif
+
+  148 $@30: /* empty */
+
+  149 elseif: T_ELSEIF '(' exp ')' '{' $@30 rotation '}'
+
+  150 .else: /* empty */
+
+  151 $@31: /* empty */
+
+  152 .else: T_ELSE '{' $@31 rotation '}'
+
+  153 exp: '(' exp ')'
+  154    | '-' exp
+  155    | '!' exp
+  156    | exp T_AND exp
+  157    | exp T_OR exp
+  158    | exp '+' exp
+  159    | exp '-' exp
+  160    | exp '*' exp
+  161    | exp '/' exp
+  162    | exp '>' exp
+  163    | exp '<' exp
+  164    | exp T_GEQ exp
+  165    | exp T_LEQ exp
+  166    | exp T_EQ exp
+  167    | exp T_NEQ exp
+  168    | T_ABSVAL '(' exp ')'
+  169    | number
+  170    | T_NIL
+  171    | T_FALSE
+  172    | T_TRUE
+  173    | spell
+  174    | builtin
+  175    | variable
+
+  176 .arrayindex: /* empty */
+  177            | '[' exp ']'
+
+  178 number: integer
+  179       | float
+
+  180 integer: T_INTEGER
+
+  181 float: T_FLOAT
+
+  182 builtin: T_BUILTIN_1 '(' ')'
+  183        | T_BUILTIN_2 '(' .spell ')'
+  184        | T_BUILTIN_2M '(' spell ')'
+  185        | T_BUILTIN_3 '(' exp ')'
+  186        | T_BUILTIN_4 '(' string ')'
+  187        | T_BUILTIN_5 '(' exp ',' exp ',' exp ')'
+  188        | T_BUILTIN_MX '(' T_MUTEXVAR ')'
+  189        | T_BUILTIN_MX2 '(' T_MUTEXVAR ',' spell ')'
+
+  190 .spell: /* empty */
+  191       | exp
+
+  192 spell: T_SPELL
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'!' (33) 155
+'(' (40) 12 13 48 50 52 54 57 67 68 86 99 115 117 119 124 149 153 168
+    182 183 184 185 186 187 188 189
+')' (41) 12 13 48 50 52 54 57 67 68 86 99 115 117 119 124 149 153 168
+    182 183 184 185 186 187 188 189
+'*' (42) 160
+'+' (43) 158
+',' (44) 13 14 15 18 35 48 61 72 101 126 187 189
+'-' (45) 154 159
+'/' (47) 106 161
+':' (58) 5 91 98 113 140 143
+';' (59) 6 8 10 84 87 91 94 99 107 112 113 122 124
+'<' (60) 163
+'=' (61) 12 13 31 32 75 76 77 78 122
+'>' (62) 162
+'[' (91) 27 35 177
+']' (93) 27 35 177
+'{' (123) 8 32 46 48 50 52 54 57 65 80 84 87 94 115 117 119 137 143
+    149 152
+'}' (125) 8 32 46 48 50 52 54 57 65 80 84 87 94 115 117 119 137 143
+    149 152
+error (256)
+T_CLASS (258) 5
+T_BUILD (259) 5
+T_COMBAT (260) 65
+T_OUTOFCOMBAT (261) 80
+T_CLIP (262) 12 13 87
+T_STRICT (263) 94
+T_FLOAT (264) 181
+T_INTEGER (265) 86 180
+T_PRECOMBAT (266) 46
+T_POSTSPELL (267) 48
+T_SPELLSENT (268) 54
+T_NIL (269) 113 170
+T_ID (270) 5 10 22 24 57 62 124
+T_SPELL (271) 16 69 75 77 91 192
+T_ABSVAL (272) 168
+T_STRING (273) 104
+T_TAKE_DAMAGE (274) 50
+T_TAKE_HEAL (275) 52
+T_TRUE (276) 172
+T_FALSE (277) 171
+T_BUILTIN_1 (278) 182
+T_BUILTIN_2 (279) 183
+T_BUILTIN_2M (280) 184
+T_BUILTIN_3 (281) 185
+T_BUILTIN_4 (282) 186
+T_BUILTIN_5 (283) 187
+T_BUILTIN_MX (284) 188
+T_BUILTIN_MX2 (285) 189
+T_SWITCH (286) 115
+T_CASE (287) 140
+T_DEFAULT (288) 143
+T_IF (289) 119
+T_ELSEIF (290) 149
+T_ELSE (291) 152
+T_EXTERN (292) 10
+T_FUNCTION (293) 57
+T_WHILE (294) 117
+T_ALTERNATE (295) 84
+T_MUTEX (296) 8
+T_MUTEXVAR (297) 23 188 189
+T_FREE (298) 77 78
+T_FAIL (299) 75 76
+T_PRINT (300) 99
+T_CALL (301) 124
+T_VAR (302) 6
+T_VARIABLE (303) 25 127
+T_EXTERNVARIABLE (304) 128
+T_OR (305) 157
+T_AND (306) 156
+T_EQ (307) 166
+T_LEQ (308) 165
+T_NEQ (309) 167
+T_GEQ (310) 164
+UNIMINUS (311)
+
+
+Nonterminals, with rules where they appear
+
+$accept (74)
+    on left: 0
+file (75)
+    on left: 2, on right: 0
+$@1 (76)
+    on left: 1, on right: 2
+header (77)
+    on left: 5, on right: 2
+$@2 (78)
+    on left: 3, on right: 5
+$@3 (79)
+    on left: 4, on right: 5
+vardecl (80)
+    on left: 6 8 10, on right: 40 120
+$@4 (81)
+    on left: 7, on right: 8
+$@5 (82)
+    on left: 9, on right: 10
+.mutexclip (83)
+    on left: 11 12 13, on right: 8
+mx_spellist (84)
+    on left: 14 15, on right: 8 15
+mx_spell (85)
+    on left: 16, on right: 14 15
+vardecl_line (86)
+    on left: 17 18, on right: 6 18
+vardeclent (87)
+    on left: 21, on right: 17 18
+$@6 (88)
+    on left: 19, on right: 21
+$@7 (89)
+    on left: 20, on right: 21
+mutexname (90)
+    on left: 22 23, on right: 8
+varname (91)
+    on left: 24 25, on right: 21
+.array (92)
+    on left: 26 27, on right: 21
+.init (93)
+    on left: 28 29 30, on right: 21
+single_init (94)
+    on left: 31, on right: 29
+array_init (95)
+    on left: 32, on right: 30
+array_init_lines (96)
+    on left: 33 34, on right: 32 34
+array_init_line (97)
+    on left: 35, on right: 33 34
+.optstuff (98)
+    on left: 36 37, on right: 2
+optstuff (99)
+    on left: 38 39, on right: 37 39
+optthang (100)
+    on left: 40, on right: 38 39
+calledRoutines (101)
+    on left: 41 42, on right: 2 42
+calledRoutine (102)
+    on left: 43 44 46 48 50 52 54 57, on right: 41 42
+$@8 (103)
+    on left: 45, on right: 46
+$@9 (104)
+    on left: 47, on right: 48
+$@10 (105)
+    on left: 49, on right: 50
+$@11 (106)
+    on left: 51, on right: 52
+$@12 (107)
+    on left: 53, on right: 54
+@13 (108)
+    on left: 55, on right: 57
+@14 (109)
+    on left: 56, on right: 57
+.paramlist (110)
+    on left: 58 59, on right: 57 124
+paramlist (111)
+    on left: 60 61, on right: 59 61
+parameter (112)
+    on left: 62 63, on right: 48 50 52 54 60 61
+incombat (113)
+    on left: 65, on right: 43
+$@15 (114)
+    on left: 64, on right: 65
+.pick_opts (115)
+    on left: 66 67 68, on right: 65 80
+just_one_opt (116)
+    on left: 69 70, on right: 67
+pick_opts (117)
+    on left: 71 72, on right: 68 72
+pick_opt (118)
+    on left: 73 74, on right: 71 72
+failspell (119)
+    on left: 75 76, on right: 73
+freespell (120)
+    on left: 77 78, on right: 74
+oocombat (121)
+    on left: 80, on right: 44
+$@16 (122)
+    on left: 79, on right: 80
+combatstuff (123)
+    on left: 82, on right: 65 80
+$@17 (124)
+    on left: 81, on right: 82
+alternate (125)
+    on left: 84, on right: 121
+$@18 (126)
+    on left: 83, on right: 84
+.alt_number (127)
+    on left: 85 86, on right: 84
+clips (128)
+    on left: 87, on right: 110
+clipents (129)
+    on left: 88 89, on right: 87 89
+clip (130)
+    on left: 91, on right: 88 89
+$@19 (131)
+    on left: 90, on right: 91
+strict (132)
+    on left: 94, on right: 109
+$@20 (133)
+    on left: 92, on right: 94
+$@21 (134)
+    on left: 93, on right: 94
+rotation (135)
+    on left: 95 96, on right: 46 48 50 52 54 57 82 84 94 96 117 119
+    137 143 149 152
+.spell_predicate (136)
+    on left: 97 98, on right: 112
+print_statement (137)
+    on left: 99, on right: 108
+stuff2print (138)
+    on left: 100 101, on right: 99 101
+printThang (139)
+    on left: 102 103, on right: 100 101
+string (140)
+    on left: 104, on right: 103 186
+.spell_mintime (141)
+    on left: 105 106, on right: 112
+rotation_entry (142)
+    on left: 107 108 109 110 112 113 115 117 119 120 121 122 124, on right:
+    95 96
+$@22 (143)
+    on left: 111, on right: 112
+@23 (144)
+    on left: 114, on right: 115
+$@24 (145)
+    on left: 116, on right: 117
+$@25 (146)
+    on left: 118, on right: 119
+@26 (147)
+    on left: 123, on right: 124
+varlist (148)
+    on left: 125 126, on right: 122 126
+t_variable (149)
+    on left: 127, on right: 129
+t_externvariable (150)
+    on left: 128, on right: 130
+variable (151)
+    on left: 129 130, on right: 70 76 78 125 126 175
+.case_statements (152)
+    on left: 131 132, on right: 115
+case_statements (153)
+    on left: 133 134, on right: 132 134
+case_statement (154)
+    on left: 137, on right: 133 134
+$@27 (155)
+    on left: 135, on right: 137
+$@28 (156)
+    on left: 136, on right: 137
+caselines (157)
+    on left: 138 139, on right: 137 139
+one_case (158)
+    on left: 140, on right: 138 139
+.default_statement (159)
+    on left: 141 143, on right: 115
+$@29 (160)
+    on left: 142, on right: 143
+.elseifs (161)
+    on left: 144 145, on right: 119
+elseifs (162)
+    on left: 146 147, on right: 145 147
+elseif (163)
+    on left: 149, on right: 146 147
+$@30 (164)
+    on left: 148, on right: 149
+.else (165)
+    on left: 150 152, on right: 119
+$@31 (166)
+    on left: 151, on right: 152
+exp (167)
+    on left: 153 154 155 156 157 158 159 160 161 162 163 164 165 166
+    167 168 169 170 171 172 173 174 175, on right: 12 13 31 35 63 91
+    98 102 113 115 117 119 122 140 149 153 154 155 156 157 158 159
+    160 161 162 163 164 165 166 167 168 177 185 187 191
+.arrayindex (168)
+    on left: 176 177, on right: 129 130
+number (169)
+    on left: 178 179, on right: 169
+integer (170)
+    on left: 180, on right: 178
+float (171)
+    on left: 181, on right: 179
+builtin (172)
+    on left: 182 183 184 185 186 187 188 189, on right: 174
+.spell (173)
+    on left: 190 191, on right: 183
+spell (174)
+    on left: 192, on right: 106 112 173 184 189
+
+
+state 0
+
+    0 $accept: . file $end
+
+    T_CLASS  shift, and go to state 1
+
+    file    go to state 2
+    header  go to state 3
+
+
+state 1
+
+    5 header: T_CLASS . ':' T_ID $@2 T_BUILD ':' T_ID $@3
+
+    ':'  shift, and go to state 4
+
+
+state 2
+
+    0 $accept: file . $end
+
+    $end  shift, and go to state 5
+
+
+state 3
+
+    2 file: header . .optstuff $@1 calledRoutines
+
+    T_EXTERN  shift, and go to state 6
+    T_MUTEX   shift, and go to state 7
+    T_VAR     shift, and go to state 8
+
+    $default  reduce using rule 36 (.optstuff)
+
+    vardecl    go to state 9
+    .optstuff  go to state 10
+    optstuff   go to state 11
+    optthang   go to state 12
+
+
+state 4
+
+    5 header: T_CLASS ':' . T_ID $@2 T_BUILD ':' T_ID $@3
+
+    T_ID  shift, and go to state 13
+
+
+state 5
+
+    0 $accept: file $end .
+
+    $default  accept
+
+
+state 6
+
+   10 vardecl: T_EXTERN . T_ID $@5 ';'
+
+    T_ID  shift, and go to state 14
+
+
+state 7
+
+    8 vardecl: T_MUTEX . mutexname $@4 .mutexclip '{' mx_spellist '}' ';'
+
+    T_ID        shift, and go to state 15
+    T_MUTEXVAR  shift, and go to state 16
+
+    mutexname  go to state 17
+
+
+state 8
+
+    6 vardecl: T_VAR . vardecl_line ';'
+
+    T_ID        shift, and go to state 18
+    T_VARIABLE  shift, and go to state 19
+
+    vardecl_line  go to state 20
+    vardeclent    go to state 21
+    varname       go to state 22
+
+
+state 9
+
+   40 optthang: vardecl .
+
+    $default  reduce using rule 40 (optthang)
+
+
+state 10
+
+    2 file: header .optstuff . $@1 calledRoutines
+
+    $default  reduce using rule 1 ($@1)
+
+    $@1  go to state 23
+
+
+state 11
+
+   37 .optstuff: optstuff .
+   39 optstuff: optstuff . optthang
+
+    T_EXTERN  shift, and go to state 6
+    T_MUTEX   shift, and go to state 7
+    T_VAR     shift, and go to state 8
+
+    $default  reduce using rule 37 (.optstuff)
+
+    vardecl   go to state 9
+    optthang  go to state 24
+
+
+state 12
+
+   38 optstuff: optthang .
+
+    $default  reduce using rule 38 (optstuff)
+
+
+state 13
+
+    5 header: T_CLASS ':' T_ID . $@2 T_BUILD ':' T_ID $@3
+
+    $default  reduce using rule 3 ($@2)
+
+    $@2  go to state 25
+
+
+state 14
+
+   10 vardecl: T_EXTERN T_ID . $@5 ';'
+
+    $default  reduce using rule 9 ($@5)
+
+    $@5  go to state 26
+
+
+state 15
+
+   22 mutexname: T_ID .
+
+    $default  reduce using rule 22 (mutexname)
+
+
+state 16
+
+   23 mutexname: T_MUTEXVAR .
+
+    $default  reduce using rule 23 (mutexname)
+
+
+state 17
+
+    8 vardecl: T_MUTEX mutexname . $@4 .mutexclip '{' mx_spellist '}' ';'
+
+    $default  reduce using rule 7 ($@4)
+
+    $@4  go to state 27
+
+
+state 18
+
+   24 varname: T_ID .
+
+    $default  reduce using rule 24 (varname)
+
+
+state 19
+
+   25 varname: T_VARIABLE .
+
+    $default  reduce using rule 25 (varname)
+
+
+state 20
+
+    6 vardecl: T_VAR vardecl_line . ';'
+   18 vardecl_line: vardecl_line . ',' vardeclent
+
+    ';'  shift, and go to state 28
+    ','  shift, and go to state 29
+
+
+state 21
+
+   17 vardecl_line: vardeclent .
+
+    $default  reduce using rule 17 (vardecl_line)
+
+
+state 22
+
+   21 vardeclent: varname . $@6 .array $@7 .init
+
+    $default  reduce using rule 19 ($@6)
+
+    $@6  go to state 30
+
+
+state 23
+
+    2 file: header .optstuff $@1 . calledRoutines
+
+    T_COMBAT       shift, and go to state 31
+    T_OUTOFCOMBAT  shift, and go to state 32
+    T_PRECOMBAT    shift, and go to state 33
+    T_POSTSPELL    shift, and go to state 34
+    T_SPELLSENT    shift, and go to state 35
+    T_TAKE_DAMAGE  shift, and go to state 36
+    T_TAKE_HEAL    shift, and go to state 37
+    T_FUNCTION     shift, and go to state 38
+
+    calledRoutines  go to state 39
+    calledRoutine   go to state 40
+    incombat        go to state 41
+    oocombat        go to state 42
+
+
+state 24
+
+   39 optstuff: optstuff optthang .
+
+    $default  reduce using rule 39 (optstuff)
+
+
+state 25
+
+    5 header: T_CLASS ':' T_ID $@2 . T_BUILD ':' T_ID $@3
+
+    T_BUILD  shift, and go to state 43
+
+
+state 26
+
+   10 vardecl: T_EXTERN T_ID $@5 . ';'
+
+    ';'  shift, and go to state 44
+
+
+state 27
+
+    8 vardecl: T_MUTEX mutexname $@4 . .mutexclip '{' mx_spellist '}' ';'
+
+    '('  shift, and go to state 45
+
+    $default  reduce using rule 11 (.mutexclip)
+
+    .mutexclip  go to state 46
+
+
+state 28
+
+    6 vardecl: T_VAR vardecl_line ';' .
+
+    $default  reduce using rule 6 (vardecl)
+
+
+state 29
+
+   18 vardecl_line: vardecl_line ',' . vardeclent
+
+    T_ID        shift, and go to state 18
+    T_VARIABLE  shift, and go to state 19
+
+    vardeclent  go to state 47
+    varname     go to state 22
+
+
+state 30
+
+   21 vardeclent: varname $@6 . .array $@7 .init
+
+    '['  shift, and go to state 48
+
+    $default  reduce using rule 26 (.array)
+
+    .array  go to state 49
+
+
+state 31
+
+   65 incombat: T_COMBAT . .pick_opts $@15 '{' combatstuff '}'
+
+    '('  shift, and go to state 50
+
+    $default  reduce using rule 66 (.pick_opts)
+
+    .pick_opts  go to state 51
+
+
+state 32
+
+   80 oocombat: T_OUTOFCOMBAT . $@16 .pick_opts '{' combatstuff '}'
+
+    $default  reduce using rule 79 ($@16)
+
+    $@16  go to state 52
+
+
+state 33
+
+   46 calledRoutine: T_PRECOMBAT . '{' $@8 rotation '}'
+
+    '{'  shift, and go to state 53
+
+
+state 34
+
+   48 calledRoutine: T_POSTSPELL . '(' parameter ',' parameter ')' '{' $@9 rotation '}'
+
+    '('  shift, and go to state 54
+
+
+state 35
+
+   54 calledRoutine: T_SPELLSENT . '(' parameter ')' '{' $@12 rotation '}'
+
+    '('  shift, and go to state 55
+
+
+state 36
+
+   50 calledRoutine: T_TAKE_DAMAGE . '(' parameter ')' '{' $@10 rotation '}'
+
+    '('  shift, and go to state 56
+
+
+state 37
+
+   52 calledRoutine: T_TAKE_HEAL . '(' parameter ')' '{' $@11 rotation '}'
+
+    '('  shift, and go to state 57
+
+
+state 38
+
+   57 calledRoutine: T_FUNCTION . T_ID @13 '(' .paramlist ')' '{' @14 rotation '}'
+
+    T_ID  shift, and go to state 58
+
+
+state 39
+
+    2 file: header .optstuff $@1 calledRoutines .
+   42 calledRoutines: calledRoutines . calledRoutine
+
+    T_COMBAT       shift, and go to state 31
+    T_OUTOFCOMBAT  shift, and go to state 32
+    T_PRECOMBAT    shift, and go to state 33
+    T_POSTSPELL    shift, and go to state 34
+    T_SPELLSENT    shift, and go to state 35
+    T_TAKE_DAMAGE  shift, and go to state 36
+    T_TAKE_HEAL    shift, and go to state 37
+    T_FUNCTION     shift, and go to state 38
+
+    $default  reduce using rule 2 (file)
+
+    calledRoutine  go to state 59
+    incombat       go to state 41
+    oocombat       go to state 42
+
+
+state 40
+
+   41 calledRoutines: calledRoutine .
+
+    $default  reduce using rule 41 (calledRoutines)
+
+
+state 41
+
+   43 calledRoutine: incombat .
+
+    $default  reduce using rule 43 (calledRoutine)
+
+
+state 42
+
+   44 calledRoutine: oocombat .
+
+    $default  reduce using rule 44 (calledRoutine)
+
+
+state 43
+
+    5 header: T_CLASS ':' T_ID $@2 T_BUILD . ':' T_ID $@3
+
+    ':'  shift, and go to state 60
+
+
+state 44
+
+   10 vardecl: T_EXTERN T_ID $@5 ';' .
+
+    $default  reduce using rule 10 (vardecl)
+
+
+state 45
+
+   12 .mutexclip: '(' . T_CLIP '=' exp ')'
+   13           | '(' . T_CLIP '=' exp ',' exp ')'
+
+    T_CLIP  shift, and go to state 61
+
+
+state 46
+
+    8 vardecl: T_MUTEX mutexname $@4 .mutexclip . '{' mx_spellist '}' ';'
+
+    '{'  shift, and go to state 62
+
+
+state 47
+
+   18 vardecl_line: vardecl_line ',' vardeclent .
+
+    $default  reduce using rule 18 (vardecl_line)
+
+
+state 48
+
+   27 .array: '[' . ']'
+
+    ']'  shift, and go to state 63
+
+
+state 49
+
+   21 vardeclent: varname $@6 .array . $@7 .init
+
+    $default  reduce using rule 20 ($@7)
+
+    $@7  go to state 64
+
+
+state 50
+
+   67 .pick_opts: '(' . just_one_opt ')'
+   68           | '(' . pick_opts ')'
+
+    T_SPELL           shift, and go to state 65
+    T_FREE            shift, and go to state 66
+    T_FAIL            shift, and go to state 67
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+
+    just_one_opt      go to state 70
+    pick_opts         go to state 71
+    pick_opt          go to state 72
+    failspell         go to state 73
+    freespell         go to state 74
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 77
+
+
+state 51
+
+   65 incombat: T_COMBAT .pick_opts . $@15 '{' combatstuff '}'
+
+    $default  reduce using rule 64 ($@15)
+
+    $@15  go to state 78
+
+
+state 52
+
+   80 oocombat: T_OUTOFCOMBAT $@16 . .pick_opts '{' combatstuff '}'
+
+    '('  shift, and go to state 50
+
+    $default  reduce using rule 66 (.pick_opts)
+
+    .pick_opts  go to state 79
+
+
+state 53
+
+   46 calledRoutine: T_PRECOMBAT '{' . $@8 rotation '}'
+
+    $default  reduce using rule 45 ($@8)
+
+    $@8  go to state 80
+
+
+state 54
+
+   48 calledRoutine: T_POSTSPELL '(' . parameter ',' parameter ')' '{' $@9 rotation '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_ID              shift, and go to state 84
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    parameter         go to state 100
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 102
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 55
+
+   54 calledRoutine: T_SPELLSENT '(' . parameter ')' '{' $@12 rotation '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_ID              shift, and go to state 84
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    parameter         go to state 108
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 102
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 56
+
+   50 calledRoutine: T_TAKE_DAMAGE '(' . parameter ')' '{' $@10 rotation '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_ID              shift, and go to state 84
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    parameter         go to state 109
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 102
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 57
+
+   52 calledRoutine: T_TAKE_HEAL '(' . parameter ')' '{' $@11 rotation '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_ID              shift, and go to state 84
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    parameter         go to state 110
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 102
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 58
+
+   57 calledRoutine: T_FUNCTION T_ID . @13 '(' .paramlist ')' '{' @14 rotation '}'
+
+    $default  reduce using rule 55 (@13)
+
+    @13  go to state 111
+
+
+state 59
+
+   42 calledRoutines: calledRoutines calledRoutine .
+
+    $default  reduce using rule 42 (calledRoutines)
+
+
+state 60
+
+    5 header: T_CLASS ':' T_ID $@2 T_BUILD ':' . T_ID $@3
+
+    T_ID  shift, and go to state 112
+
+
+state 61
+
+   12 .mutexclip: '(' T_CLIP . '=' exp ')'
+   13           | '(' T_CLIP . '=' exp ',' exp ')'
+
+    '='  shift, and go to state 113
+
+
+state 62
+
+    8 vardecl: T_MUTEX mutexname $@4 .mutexclip '{' . mx_spellist '}' ';'
+
+    T_SPELL  shift, and go to state 114
+
+    mx_spellist  go to state 115
+    mx_spell     go to state 116
+
+
+state 63
+
+   27 .array: '[' ']' .
+
+    $default  reduce using rule 27 (.array)
+
+
+state 64
+
+   21 vardeclent: varname $@6 .array $@7 . .init
+
+    '='  shift, and go to state 117
+
+    $default  reduce using rule 28 (.init)
+
+    .init        go to state 118
+    single_init  go to state 119
+    array_init   go to state 120
+
+
+state 65
+
+   69 just_one_opt: T_SPELL .
+
+    $default  reduce using rule 69 (just_one_opt)
+
+
+state 66
+
+   77 freespell: T_FREE . '=' T_SPELL
+   78          | T_FREE . '=' variable
+
+    '='  shift, and go to state 121
+
+
+state 67
+
+   75 failspell: T_FAIL . '=' T_SPELL
+   76          | T_FAIL . '=' variable
+
+    '='  shift, and go to state 122
+
+
+state 68
+
+  127 t_variable: T_VARIABLE .
+
+    $default  reduce using rule 127 (t_variable)
+
+
+state 69
+
+  128 t_externvariable: T_EXTERNVARIABLE .
+
+    $default  reduce using rule 128 (t_externvariable)
+
+
+state 70
+
+   67 .pick_opts: '(' just_one_opt . ')'
+
+    ')'  shift, and go to state 123
+
+
+state 71
+
+   68 .pick_opts: '(' pick_opts . ')'
+   72 pick_opts: pick_opts . ',' pick_opt
+
+    ')'  shift, and go to state 124
+    ','  shift, and go to state 125
+
+
+state 72
+
+   71 pick_opts: pick_opt .
+
+    $default  reduce using rule 71 (pick_opts)
+
+
+state 73
+
+   73 pick_opt: failspell .
+
+    $default  reduce using rule 73 (pick_opt)
+
+
+state 74
+
+   74 pick_opt: freespell .
+
+    $default  reduce using rule 74 (pick_opt)
+
+
+state 75
+
+  129 variable: t_variable . .arrayindex
+
+    '['  shift, and go to state 126
+
+    $default  reduce using rule 176 (.arrayindex)
+
+    .arrayindex  go to state 127
+
+
+state 76
+
+  130 variable: t_externvariable . .arrayindex
+
+    '['  shift, and go to state 126
+
+    $default  reduce using rule 176 (.arrayindex)
+
+    .arrayindex  go to state 128
+
+
+state 77
+
+   70 just_one_opt: variable .
+
+    $default  reduce using rule 70 (just_one_opt)
+
+
+state 78
+
+   65 incombat: T_COMBAT .pick_opts $@15 . '{' combatstuff '}'
+
+    '{'  shift, and go to state 129
+
+
+state 79
+
+   80 oocombat: T_OUTOFCOMBAT $@16 .pick_opts . '{' combatstuff '}'
+
+    '{'  shift, and go to state 130
+
+
+state 80
+
+   46 calledRoutine: T_PRECOMBAT '{' $@8 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 145
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 81
+
+  181 float: T_FLOAT .
+
+    $default  reduce using rule 181 (float)
+
+
+state 82
+
+  180 integer: T_INTEGER .
+
+    $default  reduce using rule 180 (integer)
+
+
+state 83
+
+  170 exp: T_NIL .
+
+    $default  reduce using rule 170 (exp)
+
+
+state 84
+
+   62 parameter: T_ID .
+
+    $default  reduce using rule 62 (parameter)
+
+
+state 85
+
+  192 spell: T_SPELL .
+
+    $default  reduce using rule 192 (spell)
+
+
+state 86
+
+  168 exp: T_ABSVAL . '(' exp ')'
+
+    '('  shift, and go to state 151
+
+
+state 87
+
+  172 exp: T_TRUE .
+
+    $default  reduce using rule 172 (exp)
+
+
+state 88
+
+  171 exp: T_FALSE .
+
+    $default  reduce using rule 171 (exp)
+
+
+state 89
+
+  182 builtin: T_BUILTIN_1 . '(' ')'
+
+    '('  shift, and go to state 152
+
+
+state 90
+
+  183 builtin: T_BUILTIN_2 . '(' .spell ')'
+
+    '('  shift, and go to state 153
+
+
+state 91
+
+  184 builtin: T_BUILTIN_2M . '(' spell ')'
+
+    '('  shift, and go to state 154
+
+
+state 92
+
+  185 builtin: T_BUILTIN_3 . '(' exp ')'
+
+    '('  shift, and go to state 155
+
+
+state 93
+
+  186 builtin: T_BUILTIN_4 . '(' string ')'
+
+    '('  shift, and go to state 156
+
+
+state 94
+
+  187 builtin: T_BUILTIN_5 . '(' exp ',' exp ',' exp ')'
+
+    '('  shift, and go to state 157
+
+
+state 95
+
+  188 builtin: T_BUILTIN_MX . '(' T_MUTEXVAR ')'
+
+    '('  shift, and go to state 158
+
+
+state 96
+
+  189 builtin: T_BUILTIN_MX2 . '(' T_MUTEXVAR ',' spell ')'
+
+    '('  shift, and go to state 159
+
+
+state 97
+
+  154 exp: '-' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 160
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 98
+
+  155 exp: '!' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 161
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 99
+
+  153 exp: '(' . exp ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 162
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 100
+
+   48 calledRoutine: T_POSTSPELL '(' parameter . ',' parameter ')' '{' $@9 rotation '}'
+
+    ','  shift, and go to state 163
+
+
+state 101
+
+  175 exp: variable .
+
+    $default  reduce using rule 175 (exp)
+
+
+state 102
+
+   63 parameter: exp .
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+
+    $default  reduce using rule 63 (parameter)
+
+
+state 103
+
+  169 exp: number .
+
+    $default  reduce using rule 169 (exp)
+
+
+state 104
+
+  178 number: integer .
+
+    $default  reduce using rule 178 (number)
+
+
+state 105
+
+  179 number: float .
+
+    $default  reduce using rule 179 (number)
+
+
+state 106
+
+  174 exp: builtin .
+
+    $default  reduce using rule 174 (exp)
+
+
+state 107
+
+  173 exp: spell .
+
+    $default  reduce using rule 173 (exp)
+
+
+state 108
+
+   54 calledRoutine: T_SPELLSENT '(' parameter . ')' '{' $@12 rotation '}'
+
+    ')'  shift, and go to state 176
+
+
+state 109
+
+   50 calledRoutine: T_TAKE_DAMAGE '(' parameter . ')' '{' $@10 rotation '}'
+
+    ')'  shift, and go to state 177
+
+
+state 110
+
+   52 calledRoutine: T_TAKE_HEAL '(' parameter . ')' '{' $@11 rotation '}'
+
+    ')'  shift, and go to state 178
+
+
+state 111
+
+   57 calledRoutine: T_FUNCTION T_ID @13 . '(' .paramlist ')' '{' @14 rotation '}'
+
+    '('  shift, and go to state 179
+
+
+state 112
+
+    5 header: T_CLASS ':' T_ID $@2 T_BUILD ':' T_ID . $@3
+
+    $default  reduce using rule 4 ($@3)
+
+    $@3  go to state 180
+
+
+state 113
+
+   12 .mutexclip: '(' T_CLIP '=' . exp ')'
+   13           | '(' T_CLIP '=' . exp ',' exp ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 181
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 114
+
+   16 mx_spell: T_SPELL .
+
+    $default  reduce using rule 16 (mx_spell)
+
+
+state 115
+
+    8 vardecl: T_MUTEX mutexname $@4 .mutexclip '{' mx_spellist . '}' ';'
+   15 mx_spellist: mx_spellist . mx_spell ','
+
+    T_SPELL  shift, and go to state 114
+    '}'      shift, and go to state 182
+
+    mx_spell  go to state 183
+
+
+state 116
+
+   14 mx_spellist: mx_spell . ','
+
+    ','  shift, and go to state 184
+
+
+state 117
+
+   31 single_init: '=' . exp
+   32 array_init: '=' . '{' array_init_lines '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '{'               shift, and go to state 185
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 186
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 118
+
+   21 vardeclent: varname $@6 .array $@7 .init .
+
+    $default  reduce using rule 21 (vardeclent)
+
+
+state 119
+
+   29 .init: single_init .
+
+    $default  reduce using rule 29 (.init)
+
+
+state 120
+
+   30 .init: array_init .
+
+    $default  reduce using rule 30 (.init)
+
+
+state 121
+
+   77 freespell: T_FREE '=' . T_SPELL
+   78          | T_FREE '=' . variable
+
+    T_SPELL           shift, and go to state 187
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 188
+
+
+state 122
+
+   75 failspell: T_FAIL '=' . T_SPELL
+   76          | T_FAIL '=' . variable
+
+    T_SPELL           shift, and go to state 189
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 190
+
+
+state 123
+
+   67 .pick_opts: '(' just_one_opt ')' .
+
+    $default  reduce using rule 67 (.pick_opts)
+
+
+state 124
+
+   68 .pick_opts: '(' pick_opts ')' .
+
+    $default  reduce using rule 68 (.pick_opts)
+
+
+state 125
+
+   72 pick_opts: pick_opts ',' . pick_opt
+
+    T_FREE  shift, and go to state 66
+    T_FAIL  shift, and go to state 67
+
+    pick_opt   go to state 191
+    failspell  go to state 73
+    freespell  go to state 74
+
+
+state 126
+
+  177 .arrayindex: '[' . exp ']'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 192
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 127
+
+  129 variable: t_variable .arrayindex .
+
+    $default  reduce using rule 129 (variable)
+
+
+state 128
+
+  130 variable: t_externvariable .arrayindex .
+
+    $default  reduce using rule 130 (variable)
+
+
+state 129
+
+   65 incombat: T_COMBAT .pick_opts $@15 '{' . combatstuff '}'
+
+    $default  reduce using rule 81 ($@17)
+
+    combatstuff  go to state 193
+    $@17         go to state 194
+
+
+state 130
+
+   80 oocombat: T_OUTOFCOMBAT $@16 .pick_opts '{' . combatstuff '}'
+
+    $default  reduce using rule 81 ($@17)
+
+    combatstuff  go to state 195
+    $@17         go to state 194
+
+
+state 131
+
+   87 clips: T_CLIP . '{' clipents '}' ';'
+
+    '{'  shift, and go to state 196
+
+
+state 132
+
+   94 strict: T_STRICT . '{' $@20 rotation '}' $@21 ';'
+
+    '{'  shift, and go to state 197
+
+
+state 133
+
+  113 rotation_entry: T_NIL . ':' exp ';'
+
+    ':'  shift, and go to state 198
+
+
+state 134
+
+  115 rotation_entry: T_SWITCH . '(' exp ')' '{' @23 .case_statements .default_statement '}'
+
+    '('  shift, and go to state 199
+
+
+state 135
+
+  119 rotation_entry: T_IF . '(' exp ')' '{' $@25 rotation '}' .elseifs .else
+
+    '('  shift, and go to state 200
+
+
+state 136
+
+  117 rotation_entry: T_WHILE . '(' exp ')' '{' $@24 rotation '}'
+
+    '('  shift, and go to state 201
+
+
+state 137
+
+   84 alternate: T_ALTERNATE . .alt_number '{' $@18 rotation '}' ';'
+
+    '('  shift, and go to state 202
+
+    $default  reduce using rule 85 (.alt_number)
+
+    .alt_number  go to state 203
+
+
+state 138
+
+   99 print_statement: T_PRINT . '(' stuff2print ')' ';'
+
+    '('  shift, and go to state 204
+
+
+state 139
+
+  124 rotation_entry: T_CALL . T_ID @26 '(' .paramlist ')' ';'
+
+    T_ID  shift, and go to state 205
+
+
+state 140
+
+  107 rotation_entry: ';' .
+
+    $default  reduce using rule 107 (rotation_entry)
+
+
+state 141
+
+  120 rotation_entry: vardecl .
+
+    $default  reduce using rule 120 (rotation_entry)
+
+
+state 142
+
+  121 rotation_entry: alternate .
+
+    $default  reduce using rule 121 (rotation_entry)
+
+
+state 143
+
+  110 rotation_entry: clips .
+
+    $default  reduce using rule 110 (rotation_entry)
+
+
+state 144
+
+  109 rotation_entry: strict .
+
+    $default  reduce using rule 109 (rotation_entry)
+
+
+state 145
+
+   46 calledRoutine: T_PRECOMBAT '{' $@8 rotation . '}'
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 206
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 146
+
+  108 rotation_entry: print_statement .
+
+    $default  reduce using rule 108 (rotation_entry)
+
+
+state 147
+
+   95 rotation: rotation_entry .
+
+    $default  reduce using rule 95 (rotation)
+
+
+state 148
+
+  122 rotation_entry: varlist . '=' exp ';'
+  126 varlist: varlist . ',' variable
+
+    '='  shift, and go to state 208
+    ','  shift, and go to state 209
+
+
+state 149
+
+  125 varlist: variable .
+
+    $default  reduce using rule 125 (varlist)
+
+
+state 150
+
+  112 rotation_entry: spell . $@22 .spell_mintime .spell_predicate ';'
+
+    $default  reduce using rule 111 ($@22)
+
+    $@22  go to state 210
+
+
+state 151
+
+  168 exp: T_ABSVAL '(' . exp ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 211
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 152
+
+  182 builtin: T_BUILTIN_1 '(' . ')'
+
+    ')'  shift, and go to state 212
+
+
+state 153
+
+  183 builtin: T_BUILTIN_2 '(' . .spell ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    $default  reduce using rule 190 (.spell)
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 213
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    .spell            go to state 214
+    spell             go to state 107
+
+
+state 154
+
+  184 builtin: T_BUILTIN_2M '(' . spell ')'
+
+    T_SPELL  shift, and go to state 85
+
+    spell  go to state 215
+
+
+state 155
+
+  185 builtin: T_BUILTIN_3 '(' . exp ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 216
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 156
+
+  186 builtin: T_BUILTIN_4 '(' . string ')'
+
+    T_STRING  shift, and go to state 217
+
+    string  go to state 218
+
+
+state 157
+
+  187 builtin: T_BUILTIN_5 '(' . exp ',' exp ',' exp ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 219
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 158
+
+  188 builtin: T_BUILTIN_MX '(' . T_MUTEXVAR ')'
+
+    T_MUTEXVAR  shift, and go to state 220
+
+
+state 159
+
+  189 builtin: T_BUILTIN_MX2 '(' . T_MUTEXVAR ',' spell ')'
+
+    T_MUTEXVAR  shift, and go to state 221
+
+
+state 160
+
+  154 exp: '-' exp .
+  156    | exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    $default  reduce using rule 154 (exp)
+
+
+state 161
+
+  155 exp: '!' exp .
+  156    | exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    $default  reduce using rule 155 (exp)
+
+
+state 162
+
+  153 exp: '(' exp . ')'
+  156    | exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 222
+
+
+state 163
+
+   48 calledRoutine: T_POSTSPELL '(' parameter ',' . parameter ')' '{' $@9 rotation '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_ID              shift, and go to state 84
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    parameter         go to state 223
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 102
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 164
+
+  157 exp: exp T_OR . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 224
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 165
+
+  156 exp: exp T_AND . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 225
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 166
+
+  163 exp: exp '<' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 226
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 167
+
+  162 exp: exp '>' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 227
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 168
+
+  166 exp: exp T_EQ . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 228
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 169
+
+  165 exp: exp T_LEQ . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 229
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 170
+
+  167 exp: exp T_NEQ . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 230
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 171
+
+  164 exp: exp T_GEQ . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 231
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 172
+
+  158 exp: exp '+' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 232
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 173
+
+  159 exp: exp '-' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 233
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 174
+
+  160 exp: exp '*' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 234
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 175
+
+  161 exp: exp '/' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 235
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 176
+
+   54 calledRoutine: T_SPELLSENT '(' parameter ')' . '{' $@12 rotation '}'
+
+    '{'  shift, and go to state 236
+
+
+state 177
+
+   50 calledRoutine: T_TAKE_DAMAGE '(' parameter ')' . '{' $@10 rotation '}'
+
+    '{'  shift, and go to state 237
+
+
+state 178
+
+   52 calledRoutine: T_TAKE_HEAL '(' parameter ')' . '{' $@11 rotation '}'
+
+    '{'  shift, and go to state 238
+
+
+state 179
+
+   57 calledRoutine: T_FUNCTION T_ID @13 '(' . .paramlist ')' '{' @14 rotation '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_ID              shift, and go to state 84
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    $default  reduce using rule 58 (.paramlist)
+
+    .paramlist        go to state 239
+    paramlist         go to state 240
+    parameter         go to state 241
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 102
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 180
+
+    5 header: T_CLASS ':' T_ID $@2 T_BUILD ':' T_ID $@3 .
+
+    $default  reduce using rule 5 (header)
+
+
+state 181
+
+   12 .mutexclip: '(' T_CLIP '=' exp . ')'
+   13           | '(' T_CLIP '=' exp . ',' exp ')'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 242
+    ','    shift, and go to state 243
+
+
+state 182
+
+    8 vardecl: T_MUTEX mutexname $@4 .mutexclip '{' mx_spellist '}' . ';'
+
+    ';'  shift, and go to state 244
+
+
+state 183
+
+   15 mx_spellist: mx_spellist mx_spell . ','
+
+    ','  shift, and go to state 245
+
+
+state 184
+
+   14 mx_spellist: mx_spell ',' .
+
+    $default  reduce using rule 14 (mx_spellist)
+
+
+state 185
+
+   32 array_init: '=' '{' . array_init_lines '}'
+
+    '['  shift, and go to state 246
+
+    array_init_lines  go to state 247
+    array_init_line   go to state 248
+
+
+state 186
+
+   31 single_init: '=' exp .
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+
+    $default  reduce using rule 31 (single_init)
+
+
+state 187
+
+   77 freespell: T_FREE '=' T_SPELL .
+
+    $default  reduce using rule 77 (freespell)
+
+
+state 188
+
+   78 freespell: T_FREE '=' variable .
+
+    $default  reduce using rule 78 (freespell)
+
+
+state 189
+
+   75 failspell: T_FAIL '=' T_SPELL .
+
+    $default  reduce using rule 75 (failspell)
+
+
+state 190
+
+   76 failspell: T_FAIL '=' variable .
+
+    $default  reduce using rule 76 (failspell)
+
+
+state 191
+
+   72 pick_opts: pick_opts ',' pick_opt .
+
+    $default  reduce using rule 72 (pick_opts)
+
+
+state 192
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+  177 .arrayindex: '[' exp . ']'
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ']'    shift, and go to state 249
+
+
+state 193
+
+   65 incombat: T_COMBAT .pick_opts $@15 '{' combatstuff . '}'
+
+    '}'  shift, and go to state 250
+
+
+state 194
+
+   82 combatstuff: $@17 . rotation
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 251
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 195
+
+   80 oocombat: T_OUTOFCOMBAT $@16 .pick_opts '{' combatstuff . '}'
+
+    '}'  shift, and go to state 252
+
+
+state 196
+
+   87 clips: T_CLIP '{' . clipents '}' ';'
+
+    T_SPELL  shift, and go to state 253
+
+    clipents  go to state 254
+    clip      go to state 255
+
+
+state 197
+
+   94 strict: T_STRICT '{' . $@20 rotation '}' $@21 ';'
+
+    $default  reduce using rule 92 ($@20)
+
+    $@20  go to state 256
+
+
+state 198
+
+  113 rotation_entry: T_NIL ':' . exp ';'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 257
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 199
+
+  115 rotation_entry: T_SWITCH '(' . exp ')' '{' @23 .case_statements .default_statement '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 258
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 200
+
+  119 rotation_entry: T_IF '(' . exp ')' '{' $@25 rotation '}' .elseifs .else
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 259
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 201
+
+  117 rotation_entry: T_WHILE '(' . exp ')' '{' $@24 rotation '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 260
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 202
+
+   86 .alt_number: '(' . T_INTEGER ')'
+
+    T_INTEGER  shift, and go to state 261
+
+
+state 203
+
+   84 alternate: T_ALTERNATE .alt_number . '{' $@18 rotation '}' ';'
+
+    '{'  shift, and go to state 262
+
+
+state 204
+
+   99 print_statement: T_PRINT '(' . stuff2print ')' ';'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_STRING          shift, and go to state 217
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    stuff2print       go to state 263
+    printThang        go to state 264
+    string            go to state 265
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 266
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 205
+
+  124 rotation_entry: T_CALL T_ID . @26 '(' .paramlist ')' ';'
+
+    $default  reduce using rule 123 (@26)
+
+    @26  go to state 267
+
+
+state 206
+
+   46 calledRoutine: T_PRECOMBAT '{' $@8 rotation '}' .
+
+    $default  reduce using rule 46 (calledRoutine)
+
+
+state 207
+
+   96 rotation: rotation rotation_entry .
+
+    $default  reduce using rule 96 (rotation)
+
+
+state 208
+
+  122 rotation_entry: varlist '=' . exp ';'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 268
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 209
+
+  126 varlist: varlist ',' . variable
+
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 269
+
+
+state 210
+
+  112 rotation_entry: spell $@22 . .spell_mintime .spell_predicate ';'
+
+    '/'  shift, and go to state 270
+
+    $default  reduce using rule 105 (.spell_mintime)
+
+    .spell_mintime  go to state 271
+
+
+state 211
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+  168    | T_ABSVAL '(' exp . ')'
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 272
+
+
+state 212
+
+  182 builtin: T_BUILTIN_1 '(' ')' .
+
+    $default  reduce using rule 182 (builtin)
+
+
+state 213
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+  191 .spell: exp .
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+
+    $default  reduce using rule 191 (.spell)
+
+
+state 214
+
+  183 builtin: T_BUILTIN_2 '(' .spell . ')'
+
+    ')'  shift, and go to state 273
+
+
+state 215
+
+  184 builtin: T_BUILTIN_2M '(' spell . ')'
+
+    ')'  shift, and go to state 274
+
+
+state 216
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+  185 builtin: T_BUILTIN_3 '(' exp . ')'
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 275
+
+
+state 217
+
+  104 string: T_STRING .
+
+    $default  reduce using rule 104 (string)
+
+
+state 218
+
+  186 builtin: T_BUILTIN_4 '(' string . ')'
+
+    ')'  shift, and go to state 276
+
+
+state 219
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+  187 builtin: T_BUILTIN_5 '(' exp . ',' exp ',' exp ')'
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ','    shift, and go to state 277
+
+
+state 220
+
+  188 builtin: T_BUILTIN_MX '(' T_MUTEXVAR . ')'
+
+    ')'  shift, and go to state 278
+
+
+state 221
+
+  189 builtin: T_BUILTIN_MX2 '(' T_MUTEXVAR . ',' spell ')'
+
+    ','  shift, and go to state 279
+
+
+state 222
+
+  153 exp: '(' exp ')' .
+
+    $default  reduce using rule 153 (exp)
+
+
+state 223
+
+   48 calledRoutine: T_POSTSPELL '(' parameter ',' parameter . ')' '{' $@9 rotation '}'
+
+    ')'  shift, and go to state 280
+
+
+state 224
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  157    | exp T_OR exp .
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+
+    $default  reduce using rule 157 (exp)
+
+
+state 225
+
+  156 exp: exp . T_AND exp
+  156    | exp T_AND exp .
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+
+    $default  reduce using rule 156 (exp)
+
+
+state 226
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  163    | exp '<' exp .
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    '+'  shift, and go to state 172
+    '-'  shift, and go to state 173
+    '*'  shift, and go to state 174
+    '/'  shift, and go to state 175
+
+    $default  reduce using rule 163 (exp)
+
+
+state 227
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  162    | exp '>' exp .
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    '+'  shift, and go to state 172
+    '-'  shift, and go to state 173
+    '*'  shift, and go to state 174
+    '/'  shift, and go to state 175
+
+    $default  reduce using rule 162 (exp)
+
+
+state 228
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  166    | exp T_EQ exp .
+  167    | exp . T_NEQ exp
+
+    '+'  shift, and go to state 172
+    '-'  shift, and go to state 173
+    '*'  shift, and go to state 174
+    '/'  shift, and go to state 175
+
+    $default  reduce using rule 166 (exp)
+
+
+state 229
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  165    | exp T_LEQ exp .
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    '+'  shift, and go to state 172
+    '-'  shift, and go to state 173
+    '*'  shift, and go to state 174
+    '/'  shift, and go to state 175
+
+    $default  reduce using rule 165 (exp)
+
+
+state 230
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+  167    | exp T_NEQ exp .
+
+    '+'  shift, and go to state 172
+    '-'  shift, and go to state 173
+    '*'  shift, and go to state 174
+    '/'  shift, and go to state 175
+
+    $default  reduce using rule 167 (exp)
+
+
+state 231
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  164    | exp T_GEQ exp .
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    '+'  shift, and go to state 172
+    '-'  shift, and go to state 173
+    '*'  shift, and go to state 174
+    '/'  shift, and go to state 175
+
+    $default  reduce using rule 164 (exp)
+
+
+state 232
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  158    | exp '+' exp .
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    '*'  shift, and go to state 174
+    '/'  shift, and go to state 175
+
+    $default  reduce using rule 158 (exp)
+
+
+state 233
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  159    | exp '-' exp .
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    '*'  shift, and go to state 174
+    '/'  shift, and go to state 175
+
+    $default  reduce using rule 159 (exp)
+
+
+state 234
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  160    | exp '*' exp .
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    $default  reduce using rule 160 (exp)
+
+
+state 235
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  161    | exp '/' exp .
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    $default  reduce using rule 161 (exp)
+
+
+state 236
+
+   54 calledRoutine: T_SPELLSENT '(' parameter ')' '{' . $@12 rotation '}'
+
+    $default  reduce using rule 53 ($@12)
+
+    $@12  go to state 281
+
+
+state 237
+
+   50 calledRoutine: T_TAKE_DAMAGE '(' parameter ')' '{' . $@10 rotation '}'
+
+    $default  reduce using rule 49 ($@10)
+
+    $@10  go to state 282
+
+
+state 238
+
+   52 calledRoutine: T_TAKE_HEAL '(' parameter ')' '{' . $@11 rotation '}'
+
+    $default  reduce using rule 51 ($@11)
+
+    $@11  go to state 283
+
+
+state 239
+
+   57 calledRoutine: T_FUNCTION T_ID @13 '(' .paramlist . ')' '{' @14 rotation '}'
+
+    ')'  shift, and go to state 284
+
+
+state 240
+
+   59 .paramlist: paramlist .
+   61 paramlist: paramlist . ',' parameter
+
+    ','  shift, and go to state 285
+
+    $default  reduce using rule 59 (.paramlist)
+
+
+state 241
+
+   60 paramlist: parameter .
+
+    $default  reduce using rule 60 (paramlist)
+
+
+state 242
+
+   12 .mutexclip: '(' T_CLIP '=' exp ')' .
+
+    $default  reduce using rule 12 (.mutexclip)
+
+
+state 243
+
+   13 .mutexclip: '(' T_CLIP '=' exp ',' . exp ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 286
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 244
+
+    8 vardecl: T_MUTEX mutexname $@4 .mutexclip '{' mx_spellist '}' ';' .
+
+    $default  reduce using rule 8 (vardecl)
+
+
+state 245
+
+   15 mx_spellist: mx_spellist mx_spell ',' .
+
+    $default  reduce using rule 15 (mx_spellist)
+
+
+state 246
+
+   35 array_init_line: '[' . exp ']' exp ','
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 287
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 247
+
+   32 array_init: '=' '{' array_init_lines . '}'
+   34 array_init_lines: array_init_lines . array_init_line
+
+    '}'  shift, and go to state 288
+    '['  shift, and go to state 246
+
+    array_init_line  go to state 289
+
+
+state 248
+
+   33 array_init_lines: array_init_line .
+
+    $default  reduce using rule 33 (array_init_lines)
+
+
+state 249
+
+  177 .arrayindex: '[' exp ']' .
+
+    $default  reduce using rule 177 (.arrayindex)
+
+
+state 250
+
+   65 incombat: T_COMBAT .pick_opts $@15 '{' combatstuff '}' .
+
+    $default  reduce using rule 65 (incombat)
+
+
+state 251
+
+   82 combatstuff: $@17 rotation .
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    $default  reduce using rule 82 (combatstuff)
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 252
+
+   80 oocombat: T_OUTOFCOMBAT $@16 .pick_opts '{' combatstuff '}' .
+
+    $default  reduce using rule 80 (oocombat)
+
+
+state 253
+
+   91 clip: T_SPELL . $@19 ':' exp ';'
+
+    $default  reduce using rule 90 ($@19)
+
+    $@19  go to state 290
+
+
+state 254
+
+   87 clips: T_CLIP '{' clipents . '}' ';'
+   89 clipents: clipents . clip
+
+    T_SPELL  shift, and go to state 253
+    '}'      shift, and go to state 291
+
+    clip  go to state 292
+
+
+state 255
+
+   88 clipents: clip .
+
+    $default  reduce using rule 88 (clipents)
+
+
+state 256
+
+   94 strict: T_STRICT '{' $@20 . rotation '}' $@21 ';'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 293
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 257
+
+  113 rotation_entry: T_NIL ':' exp . ';'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ';'    shift, and go to state 294
+
+
+state 258
+
+  115 rotation_entry: T_SWITCH '(' exp . ')' '{' @23 .case_statements .default_statement '}'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 295
+
+
+state 259
+
+  119 rotation_entry: T_IF '(' exp . ')' '{' $@25 rotation '}' .elseifs .else
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 296
+
+
+state 260
+
+  117 rotation_entry: T_WHILE '(' exp . ')' '{' $@24 rotation '}'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 297
+
+
+state 261
+
+   86 .alt_number: '(' T_INTEGER . ')'
+
+    ')'  shift, and go to state 298
+
+
+state 262
+
+   84 alternate: T_ALTERNATE .alt_number '{' . $@18 rotation '}' ';'
+
+    $default  reduce using rule 83 ($@18)
+
+    $@18  go to state 299
+
+
+state 263
+
+   99 print_statement: T_PRINT '(' stuff2print . ')' ';'
+  101 stuff2print: stuff2print . ',' printThang
+
+    ')'  shift, and go to state 300
+    ','  shift, and go to state 301
+
+
+state 264
+
+  100 stuff2print: printThang .
+
+    $default  reduce using rule 100 (stuff2print)
+
+
+state 265
+
+  103 printThang: string .
+
+    $default  reduce using rule 103 (printThang)
+
+
+state 266
+
+  102 printThang: exp .
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+
+    $default  reduce using rule 102 (printThang)
+
+
+state 267
+
+  124 rotation_entry: T_CALL T_ID @26 . '(' .paramlist ')' ';'
+
+    '('  shift, and go to state 302
+
+
+state 268
+
+  122 rotation_entry: varlist '=' exp . ';'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ';'    shift, and go to state 303
+
+
+state 269
+
+  126 varlist: varlist ',' variable .
+
+    $default  reduce using rule 126 (varlist)
+
+
+state 270
+
+  106 .spell_mintime: '/' . spell
+
+    T_SPELL  shift, and go to state 85
+
+    spell  go to state 304
+
+
+state 271
+
+  112 rotation_entry: spell $@22 .spell_mintime . .spell_predicate ';'
+
+    ':'  shift, and go to state 305
+
+    $default  reduce using rule 97 (.spell_predicate)
+
+    .spell_predicate  go to state 306
+
+
+state 272
+
+  168 exp: T_ABSVAL '(' exp ')' .
+
+    $default  reduce using rule 168 (exp)
+
+
+state 273
+
+  183 builtin: T_BUILTIN_2 '(' .spell ')' .
+
+    $default  reduce using rule 183 (builtin)
+
+
+state 274
+
+  184 builtin: T_BUILTIN_2M '(' spell ')' .
+
+    $default  reduce using rule 184 (builtin)
+
+
+state 275
+
+  185 builtin: T_BUILTIN_3 '(' exp ')' .
+
+    $default  reduce using rule 185 (builtin)
+
+
+state 276
+
+  186 builtin: T_BUILTIN_4 '(' string ')' .
+
+    $default  reduce using rule 186 (builtin)
+
+
+state 277
+
+  187 builtin: T_BUILTIN_5 '(' exp ',' . exp ',' exp ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 307
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 278
+
+  188 builtin: T_BUILTIN_MX '(' T_MUTEXVAR ')' .
+
+    $default  reduce using rule 188 (builtin)
+
+
+state 279
+
+  189 builtin: T_BUILTIN_MX2 '(' T_MUTEXVAR ',' . spell ')'
+
+    T_SPELL  shift, and go to state 85
+
+    spell  go to state 308
+
+
+state 280
+
+   48 calledRoutine: T_POSTSPELL '(' parameter ',' parameter ')' . '{' $@9 rotation '}'
+
+    '{'  shift, and go to state 309
+
+
+state 281
+
+   54 calledRoutine: T_SPELLSENT '(' parameter ')' '{' $@12 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 310
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 282
+
+   50 calledRoutine: T_TAKE_DAMAGE '(' parameter ')' '{' $@10 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 311
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 283
+
+   52 calledRoutine: T_TAKE_HEAL '(' parameter ')' '{' $@11 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 312
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 284
+
+   57 calledRoutine: T_FUNCTION T_ID @13 '(' .paramlist ')' . '{' @14 rotation '}'
+
+    '{'  shift, and go to state 313
+
+
+state 285
+
+   61 paramlist: paramlist ',' . parameter
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_ID              shift, and go to state 84
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    parameter         go to state 314
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 102
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 286
+
+   13 .mutexclip: '(' T_CLIP '=' exp ',' exp . ')'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 315
+
+
+state 287
+
+   35 array_init_line: '[' exp . ']' exp ','
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ']'    shift, and go to state 316
+
+
+state 288
+
+   32 array_init: '=' '{' array_init_lines '}' .
+
+    $default  reduce using rule 32 (array_init)
+
+
+state 289
+
+   34 array_init_lines: array_init_lines array_init_line .
+
+    $default  reduce using rule 34 (array_init_lines)
+
+
+state 290
+
+   91 clip: T_SPELL $@19 . ':' exp ';'
+
+    ':'  shift, and go to state 317
+
+
+state 291
+
+   87 clips: T_CLIP '{' clipents '}' . ';'
+
+    ';'  shift, and go to state 318
+
+
+state 292
+
+   89 clipents: clipents clip .
+
+    $default  reduce using rule 89 (clipents)
+
+
+state 293
+
+   94 strict: T_STRICT '{' $@20 rotation . '}' $@21 ';'
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 319
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 294
+
+  113 rotation_entry: T_NIL ':' exp ';' .
+
+    $default  reduce using rule 113 (rotation_entry)
+
+
+state 295
+
+  115 rotation_entry: T_SWITCH '(' exp ')' . '{' @23 .case_statements .default_statement '}'
+
+    '{'  shift, and go to state 320
+
+
+state 296
+
+  119 rotation_entry: T_IF '(' exp ')' . '{' $@25 rotation '}' .elseifs .else
+
+    '{'  shift, and go to state 321
+
+
+state 297
+
+  117 rotation_entry: T_WHILE '(' exp ')' . '{' $@24 rotation '}'
+
+    '{'  shift, and go to state 322
+
+
+state 298
+
+   86 .alt_number: '(' T_INTEGER ')' .
+
+    $default  reduce using rule 86 (.alt_number)
+
+
+state 299
+
+   84 alternate: T_ALTERNATE .alt_number '{' $@18 . rotation '}' ';'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 323
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 300
+
+   99 print_statement: T_PRINT '(' stuff2print ')' . ';'
+
+    ';'  shift, and go to state 324
+
+
+state 301
+
+  101 stuff2print: stuff2print ',' . printThang
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_STRING          shift, and go to state 217
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    printThang        go to state 325
+    string            go to state 265
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 266
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 302
+
+  124 rotation_entry: T_CALL T_ID @26 '(' . .paramlist ')' ';'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_ID              shift, and go to state 84
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    $default  reduce using rule 58 (.paramlist)
+
+    .paramlist        go to state 326
+    paramlist         go to state 240
+    parameter         go to state 241
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 102
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 303
+
+  122 rotation_entry: varlist '=' exp ';' .
+
+    $default  reduce using rule 122 (rotation_entry)
+
+
+state 304
+
+  106 .spell_mintime: '/' spell .
+
+    $default  reduce using rule 106 (.spell_mintime)
+
+
+state 305
+
+   98 .spell_predicate: ':' . exp
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 327
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 306
+
+  112 rotation_entry: spell $@22 .spell_mintime .spell_predicate . ';'
+
+    ';'  shift, and go to state 328
+
+
+state 307
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+  187 builtin: T_BUILTIN_5 '(' exp ',' exp . ',' exp ')'
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ','    shift, and go to state 329
+
+
+state 308
+
+  189 builtin: T_BUILTIN_MX2 '(' T_MUTEXVAR ',' spell . ')'
+
+    ')'  shift, and go to state 330
+
+
+state 309
+
+   48 calledRoutine: T_POSTSPELL '(' parameter ',' parameter ')' '{' . $@9 rotation '}'
+
+    $default  reduce using rule 47 ($@9)
+
+    $@9  go to state 331
+
+
+state 310
+
+   54 calledRoutine: T_SPELLSENT '(' parameter ')' '{' $@12 rotation . '}'
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 332
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 311
+
+   50 calledRoutine: T_TAKE_DAMAGE '(' parameter ')' '{' $@10 rotation . '}'
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 333
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 312
+
+   52 calledRoutine: T_TAKE_HEAL '(' parameter ')' '{' $@11 rotation . '}'
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 334
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 313
+
+   57 calledRoutine: T_FUNCTION T_ID @13 '(' .paramlist ')' '{' . @14 rotation '}'
+
+    $default  reduce using rule 56 (@14)
+
+    @14  go to state 335
+
+
+state 314
+
+   61 paramlist: paramlist ',' parameter .
+
+    $default  reduce using rule 61 (paramlist)
+
+
+state 315
+
+   13 .mutexclip: '(' T_CLIP '=' exp ',' exp ')' .
+
+    $default  reduce using rule 13 (.mutexclip)
+
+
+state 316
+
+   35 array_init_line: '[' exp ']' . exp ','
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 336
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 317
+
+   91 clip: T_SPELL $@19 ':' . exp ';'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 337
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 318
+
+   87 clips: T_CLIP '{' clipents '}' ';' .
+
+    $default  reduce using rule 87 (clips)
+
+
+state 319
+
+   94 strict: T_STRICT '{' $@20 rotation '}' . $@21 ';'
+
+    $default  reduce using rule 93 ($@21)
+
+    $@21  go to state 338
+
+
+state 320
+
+  115 rotation_entry: T_SWITCH '(' exp ')' '{' . @23 .case_statements .default_statement '}'
+
+    $default  reduce using rule 114 (@23)
+
+    @23  go to state 339
+
+
+state 321
+
+  119 rotation_entry: T_IF '(' exp ')' '{' . $@25 rotation '}' .elseifs .else
+
+    $default  reduce using rule 118 ($@25)
+
+    $@25  go to state 340
+
+
+state 322
+
+  117 rotation_entry: T_WHILE '(' exp ')' '{' . $@24 rotation '}'
+
+    $default  reduce using rule 116 ($@24)
+
+    $@24  go to state 341
+
+
+state 323
+
+   84 alternate: T_ALTERNATE .alt_number '{' $@18 rotation . '}' ';'
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 342
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 324
+
+   99 print_statement: T_PRINT '(' stuff2print ')' ';' .
+
+    $default  reduce using rule 99 (print_statement)
+
+
+state 325
+
+  101 stuff2print: stuff2print ',' printThang .
+
+    $default  reduce using rule 101 (stuff2print)
+
+
+state 326
+
+  124 rotation_entry: T_CALL T_ID @26 '(' .paramlist . ')' ';'
+
+    ')'  shift, and go to state 343
+
+
+state 327
+
+   98 .spell_predicate: ':' exp .
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+
+    $default  reduce using rule 98 (.spell_predicate)
+
+
+state 328
+
+  112 rotation_entry: spell $@22 .spell_mintime .spell_predicate ';' .
+
+    $default  reduce using rule 112 (rotation_entry)
+
+
+state 329
+
+  187 builtin: T_BUILTIN_5 '(' exp ',' exp ',' . exp ')'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 344
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 330
+
+  189 builtin: T_BUILTIN_MX2 '(' T_MUTEXVAR ',' spell ')' .
+
+    $default  reduce using rule 189 (builtin)
+
+
+state 331
+
+   48 calledRoutine: T_POSTSPELL '(' parameter ',' parameter ')' '{' $@9 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 345
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 332
+
+   54 calledRoutine: T_SPELLSENT '(' parameter ')' '{' $@12 rotation '}' .
+
+    $default  reduce using rule 54 (calledRoutine)
+
+
+state 333
+
+   50 calledRoutine: T_TAKE_DAMAGE '(' parameter ')' '{' $@10 rotation '}' .
+
+    $default  reduce using rule 50 (calledRoutine)
+
+
+state 334
+
+   52 calledRoutine: T_TAKE_HEAL '(' parameter ')' '{' $@11 rotation '}' .
+
+    $default  reduce using rule 52 (calledRoutine)
+
+
+state 335
+
+   57 calledRoutine: T_FUNCTION T_ID @13 '(' .paramlist ')' '{' @14 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 346
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 336
+
+   35 array_init_line: '[' exp ']' exp . ','
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ','    shift, and go to state 347
+
+
+state 337
+
+   91 clip: T_SPELL $@19 ':' exp . ';'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ';'    shift, and go to state 348
+
+
+state 338
+
+   94 strict: T_STRICT '{' $@20 rotation '}' $@21 . ';'
+
+    ';'  shift, and go to state 349
+
+
+state 339
+
+  115 rotation_entry: T_SWITCH '(' exp ')' '{' @23 . .case_statements .default_statement '}'
+
+    T_CASE    reduce using rule 135 ($@27)
+    $default  reduce using rule 131 (.case_statements)
+
+    .case_statements  go to state 350
+    case_statements   go to state 351
+    case_statement    go to state 352
+    $@27              go to state 353
+
+
+state 340
+
+  119 rotation_entry: T_IF '(' exp ')' '{' $@25 . rotation '}' .elseifs .else
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 354
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 341
+
+  117 rotation_entry: T_WHILE '(' exp ')' '{' $@24 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 355
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 342
+
+   84 alternate: T_ALTERNATE .alt_number '{' $@18 rotation '}' . ';'
+
+    ';'  shift, and go to state 356
+
+
+state 343
+
+  124 rotation_entry: T_CALL T_ID @26 '(' .paramlist ')' . ';'
+
+    ';'  shift, and go to state 357
+
+
+state 344
+
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+  187 builtin: T_BUILTIN_5 '(' exp ',' exp ',' exp . ')'
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 358
+
+
+state 345
+
+   48 calledRoutine: T_POSTSPELL '(' parameter ',' parameter ')' '{' $@9 rotation . '}'
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 359
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 346
+
+   57 calledRoutine: T_FUNCTION T_ID @13 '(' .paramlist ')' '{' @14 rotation . '}'
+   96 rotation: rotation . rotation_entry
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 360
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 347
+
+   35 array_init_line: '[' exp ']' exp ',' .
+
+    $default  reduce using rule 35 (array_init_line)
+
+
+state 348
+
+   91 clip: T_SPELL $@19 ':' exp ';' .
+
+    $default  reduce using rule 91 (clip)
+
+
+state 349
+
+   94 strict: T_STRICT '{' $@20 rotation '}' $@21 ';' .
+
+    $default  reduce using rule 94 (strict)
+
+
+state 350
+
+  115 rotation_entry: T_SWITCH '(' exp ')' '{' @23 .case_statements . .default_statement '}'
+
+    T_DEFAULT  shift, and go to state 361
+
+    $default  reduce using rule 141 (.default_statement)
+
+    .default_statement  go to state 362
+
+
+state 351
+
+  132 .case_statements: case_statements .
+  134 case_statements: case_statements . case_statement
+
+    T_CASE    reduce using rule 135 ($@27)
+    $default  reduce using rule 132 (.case_statements)
+
+    case_statement  go to state 363
+    $@27            go to state 353
+
+
+state 352
+
+  133 case_statements: case_statement .
+
+    $default  reduce using rule 133 (case_statements)
+
+
+state 353
+
+  137 case_statement: $@27 . caselines $@28 '{' rotation '}'
+
+    T_CASE  shift, and go to state 364
+
+    caselines  go to state 365
+    one_case   go to state 366
+
+
+state 354
+
+   96 rotation: rotation . rotation_entry
+  119 rotation_entry: T_IF '(' exp ')' '{' $@25 rotation . '}' .elseifs .else
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 367
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 355
+
+   96 rotation: rotation . rotation_entry
+  117 rotation_entry: T_WHILE '(' exp ')' '{' $@24 rotation . '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 368
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 356
+
+   84 alternate: T_ALTERNATE .alt_number '{' $@18 rotation '}' ';' .
+
+    $default  reduce using rule 84 (alternate)
+
+
+state 357
+
+  124 rotation_entry: T_CALL T_ID @26 '(' .paramlist ')' ';' .
+
+    $default  reduce using rule 124 (rotation_entry)
+
+
+state 358
+
+  187 builtin: T_BUILTIN_5 '(' exp ',' exp ',' exp ')' .
+
+    $default  reduce using rule 187 (builtin)
+
+
+state 359
+
+   48 calledRoutine: T_POSTSPELL '(' parameter ',' parameter ')' '{' $@9 rotation '}' .
+
+    $default  reduce using rule 48 (calledRoutine)
+
+
+state 360
+
+   57 calledRoutine: T_FUNCTION T_ID @13 '(' .paramlist ')' '{' @14 rotation '}' .
+
+    $default  reduce using rule 57 (calledRoutine)
+
+
+state 361
+
+  143 .default_statement: T_DEFAULT . ':' '{' $@29 rotation '}'
+
+    ':'  shift, and go to state 369
+
+
+state 362
+
+  115 rotation_entry: T_SWITCH '(' exp ')' '{' @23 .case_statements .default_statement . '}'
+
+    '}'  shift, and go to state 370
+
+
+state 363
+
+  134 case_statements: case_statements case_statement .
+
+    $default  reduce using rule 134 (case_statements)
+
+
+state 364
+
+  140 one_case: T_CASE . exp ':'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 371
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 365
+
+  137 case_statement: $@27 caselines . $@28 '{' rotation '}'
+  139 caselines: caselines . one_case
+
+    T_CASE  shift, and go to state 364
+
+    $default  reduce using rule 136 ($@28)
+
+    $@28      go to state 372
+    one_case  go to state 373
+
+
+state 366
+
+  138 caselines: one_case .
+
+    $default  reduce using rule 138 (caselines)
+
+
+state 367
+
+  119 rotation_entry: T_IF '(' exp ')' '{' $@25 rotation '}' . .elseifs .else
+
+    T_ELSEIF  shift, and go to state 374
+
+    $default  reduce using rule 144 (.elseifs)
+
+    .elseifs  go to state 375
+    elseifs   go to state 376
+    elseif    go to state 377
+
+
+state 368
+
+  117 rotation_entry: T_WHILE '(' exp ')' '{' $@24 rotation '}' .
+
+    $default  reduce using rule 117 (rotation_entry)
+
+
+state 369
+
+  143 .default_statement: T_DEFAULT ':' . '{' $@29 rotation '}'
+
+    '{'  shift, and go to state 378
+
+
+state 370
+
+  115 rotation_entry: T_SWITCH '(' exp ')' '{' @23 .case_statements .default_statement '}' .
+
+    $default  reduce using rule 115 (rotation_entry)
+
+
+state 371
+
+  140 one_case: T_CASE exp . ':'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ':'    shift, and go to state 379
+
+
+state 372
+
+  137 case_statement: $@27 caselines $@28 . '{' rotation '}'
+
+    '{'  shift, and go to state 380
+
+
+state 373
+
+  139 caselines: caselines one_case .
+
+    $default  reduce using rule 139 (caselines)
+
+
+state 374
+
+  149 elseif: T_ELSEIF . '(' exp ')' '{' $@30 rotation '}'
+
+    '('  shift, and go to state 381
+
+
+state 375
+
+  119 rotation_entry: T_IF '(' exp ')' '{' $@25 rotation '}' .elseifs . .else
+
+    T_ELSE  shift, and go to state 382
+
+    $default  reduce using rule 150 (.else)
+
+    .else  go to state 383
+
+
+state 376
+
+  145 .elseifs: elseifs .
+  147 elseifs: elseifs . elseif
+
+    T_ELSEIF  shift, and go to state 374
+
+    $default  reduce using rule 145 (.elseifs)
+
+    elseif  go to state 384
+
+
+state 377
+
+  146 elseifs: elseif .
+
+    $default  reduce using rule 146 (elseifs)
+
+
+state 378
+
+  143 .default_statement: T_DEFAULT ':' '{' . $@29 rotation '}'
+
+    $default  reduce using rule 142 ($@29)
+
+    $@29  go to state 385
+
+
+state 379
+
+  140 one_case: T_CASE exp ':' .
+
+    $default  reduce using rule 140 (one_case)
+
+
+state 380
+
+  137 case_statement: $@27 caselines $@28 '{' . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 386
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 381
+
+  149 elseif: T_ELSEIF '(' . exp ')' '{' $@30 rotation '}'
+
+    T_FLOAT           shift, and go to state 81
+    T_INTEGER         shift, and go to state 82
+    T_NIL             shift, and go to state 83
+    T_SPELL           shift, and go to state 85
+    T_ABSVAL          shift, and go to state 86
+    T_TRUE            shift, and go to state 87
+    T_FALSE           shift, and go to state 88
+    T_BUILTIN_1       shift, and go to state 89
+    T_BUILTIN_2       shift, and go to state 90
+    T_BUILTIN_2M      shift, and go to state 91
+    T_BUILTIN_3       shift, and go to state 92
+    T_BUILTIN_4       shift, and go to state 93
+    T_BUILTIN_5       shift, and go to state 94
+    T_BUILTIN_MX      shift, and go to state 95
+    T_BUILTIN_MX2     shift, and go to state 96
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    '-'               shift, and go to state 97
+    '!'               shift, and go to state 98
+    '('               shift, and go to state 99
+
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 101
+    exp               go to state 387
+    number            go to state 103
+    integer           go to state 104
+    float             go to state 105
+    builtin           go to state 106
+    spell             go to state 107
+
+
+state 382
+
+  152 .else: T_ELSE . '{' $@31 rotation '}'
+
+    '{'  shift, and go to state 388
+
+
+state 383
+
+  119 rotation_entry: T_IF '(' exp ')' '{' $@25 rotation '}' .elseifs .else .
+
+    $default  reduce using rule 119 (rotation_entry)
+
+
+state 384
+
+  147 elseifs: elseifs elseif .
+
+    $default  reduce using rule 147 (elseifs)
+
+
+state 385
+
+  143 .default_statement: T_DEFAULT ':' '{' $@29 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 389
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 386
+
+   96 rotation: rotation . rotation_entry
+  137 case_statement: $@27 caselines $@28 '{' rotation . '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 390
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 387
+
+  149 elseif: T_ELSEIF '(' exp . ')' '{' $@30 rotation '}'
+  156 exp: exp . T_AND exp
+  157    | exp . T_OR exp
+  158    | exp . '+' exp
+  159    | exp . '-' exp
+  160    | exp . '*' exp
+  161    | exp . '/' exp
+  162    | exp . '>' exp
+  163    | exp . '<' exp
+  164    | exp . T_GEQ exp
+  165    | exp . T_LEQ exp
+  166    | exp . T_EQ exp
+  167    | exp . T_NEQ exp
+
+    T_OR   shift, and go to state 164
+    T_AND  shift, and go to state 165
+    '<'    shift, and go to state 166
+    '>'    shift, and go to state 167
+    T_EQ   shift, and go to state 168
+    T_LEQ  shift, and go to state 169
+    T_NEQ  shift, and go to state 170
+    T_GEQ  shift, and go to state 171
+    '+'    shift, and go to state 172
+    '-'    shift, and go to state 173
+    '*'    shift, and go to state 174
+    '/'    shift, and go to state 175
+    ')'    shift, and go to state 391
+
+
+state 388
+
+  152 .else: T_ELSE '{' . $@31 rotation '}'
+
+    $default  reduce using rule 151 ($@31)
+
+    $@31  go to state 392
+
+
+state 389
+
+   96 rotation: rotation . rotation_entry
+  143 .default_statement: T_DEFAULT ':' '{' $@29 rotation . '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 393
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 390
+
+  137 case_statement: $@27 caselines $@28 '{' rotation '}' .
+
+    $default  reduce using rule 137 (case_statement)
+
+
+state 391
+
+  149 elseif: T_ELSEIF '(' exp ')' . '{' $@30 rotation '}'
+
+    '{'  shift, and go to state 394
+
+
+state 392
+
+  152 .else: T_ELSE '{' $@31 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 395
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 393
+
+  143 .default_statement: T_DEFAULT ':' '{' $@29 rotation '}' .
+
+    $default  reduce using rule 143 (.default_statement)
+
+
+state 394
+
+  149 elseif: T_ELSEIF '(' exp ')' '{' . $@30 rotation '}'
+
+    $default  reduce using rule 148 ($@30)
+
+    $@30  go to state 396
+
+
+state 395
+
+   96 rotation: rotation . rotation_entry
+  152 .else: T_ELSE '{' $@31 rotation . '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 397
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 396
+
+  149 elseif: T_ELSEIF '(' exp ')' '{' $@30 . rotation '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    rotation          go to state 398
+    print_statement   go to state 146
+    rotation_entry    go to state 147
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 397
+
+  152 .else: T_ELSE '{' $@31 rotation '}' .
+
+    $default  reduce using rule 152 (.else)
+
+
+state 398
+
+   96 rotation: rotation . rotation_entry
+  149 elseif: T_ELSEIF '(' exp ')' '{' $@30 rotation . '}'
+
+    T_CLIP            shift, and go to state 131
+    T_STRICT          shift, and go to state 132
+    T_NIL             shift, and go to state 133
+    T_SPELL           shift, and go to state 85
+    T_SWITCH          shift, and go to state 134
+    T_IF              shift, and go to state 135
+    T_EXTERN          shift, and go to state 6
+    T_WHILE           shift, and go to state 136
+    T_ALTERNATE       shift, and go to state 137
+    T_MUTEX           shift, and go to state 7
+    T_PRINT           shift, and go to state 138
+    T_CALL            shift, and go to state 139
+    T_VAR             shift, and go to state 8
+    T_VARIABLE        shift, and go to state 68
+    T_EXTERNVARIABLE  shift, and go to state 69
+    ';'               shift, and go to state 140
+    '}'               shift, and go to state 399
+
+    vardecl           go to state 141
+    alternate         go to state 142
+    clips             go to state 143
+    strict            go to state 144
+    print_statement   go to state 146
+    rotation_entry    go to state 207
+    varlist           go to state 148
+    t_variable        go to state 75
+    t_externvariable  go to state 76
+    variable          go to state 149
+    spell             go to state 150
+
+
+state 399
+
+  149 elseif: T_ELSEIF '(' exp ')' '{' $@30 rotation '}' .
+
+    $default  reduce using rule 149 (elseif)

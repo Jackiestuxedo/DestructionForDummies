@@ -41,37 +41,124 @@ local function PickCombat()
     if (not (DestroDummies:utilMxBuff(mIndexBase + 2))) then
         DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Brilliance"));
     end;
-    if (DestroDummies:spellReady(DestroDummies:xlateString("Icy Veins"))) then
-        DestroDummies:altRecommend(DestroDummies:xlateString("Icy Veins"), 0);
-    end;
-    if (DestroDummies:spellReady(DestroDummies:xlateString("Presence of Mind"))) then
-        DestroDummies:altRecommend(DestroDummies:xlateString("Presence of Mind"), 0);
-    end;
+    local varArcmTime;
+    local varArcmCount;
+    varArcmTime, varArcmCount = DestroDummies:utilBuffInfo(DestroDummies:xlateString("Arcane Missiles2"), false, "player")
+    local varArcCTime;
+    local varArcCCount;
+    varArcCTime, varArcCCount = DestroDummies:utilBuffInfo(DestroDummies:xlateString("Arcane Charge"), true, "player")
+    local varhaveTotem;
+    local vartotemName;
+    local varremainingTime;
+    varhaveTotem, vartotemName, varremainingTime = DestroDummies:utilTotemType(1)
+    local varPowermana;
     if (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Power"))) then
-        DestroDummies:altRecommend(DestroDummies:xlateString("Arcane Power"), 0);
+        DestroDummies:altRecommend(DestroDummies:xlateString("Arcane Power"), 1);
     end;
-    if (((DestroDummies:utilBuff(DestroDummies:xlateString("Icy Veins"), 0, "player", "HELPFUL", nil)) and ((DestroDummies:utilBuffTime(DestroDummies:xlateString("Icy Veins"))) < (2))) and ((((DestroDummies:unitPowerAfterCast() * 100) / UnitPowerMax("player"))) < (45))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Evocation"));
+    if (GetSpellInfo(DestroDummies:xlateString("Incanter's Ward")) ~= nil) then
+        if DestroDummies:utilBuff(DestroDummies:xlateString("Arcane Power"), 0, "player", "HELPFUL", nil) then
+            varPowermana = 1
+            if ((not (DestroDummies:utilBuff(DestroDummies:xlateString("Alter Time"), 0, "player", "HELPFUL", nil))) and (DestroDummies:spellReady(DestroDummies:xlateString("Alter Time")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Alter Time"));
+            end;
+        else
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Incanter's Ward"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Incanter's Ward"));
+            end;
+            if ((not (DestroDummies:utilDebuff(DestroDummies:xlateString("Nether Tempest"), 0))) and (DestroDummies:spellReady(DestroDummies:xlateString("Nether Tempest")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Nether Tempest"));
+            end;
+            if ((not (DestroDummies:utilDebuff(DestroDummies:xlateString("Living Bomb"), 0))) and (DestroDummies:spellReady(DestroDummies:xlateString("Living Bomb")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Living Bomb"));
+            end;
+            if ((not (DestroDummies:utilDebuff(DestroDummies:xlateString("Frost Bomb"), 0))) and (DestroDummies:spellReady(DestroDummies:xlateString("Frost Bomb")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Frost Bomb"));
+            end;
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Mirror Image"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Mirror Image"));
+            end;
+            if ((DestroDummies:spellReady(DestroDummies:xlateString("Arcane Missiles"))) and ((varArcmCount) >= (2))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Missiles"));
+            end;
+            if (((((DestroDummies:unitPowerAfterCast() * 100) / UnitPowerMax("player"))) <= (90)) and (DestroDummies:spellReady(DestroDummies:xlateString("Scorch")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Scorch"));
+            end;
+            if (((DestroDummies:spellReady(DestroDummies:xlateString("Arcane Missiles"))) and ((varArcmCount) == (1))) and ((varArcmTime) < (3))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Missiles"));
+            end;
+            if ((((varArcCCount) >= (4)) and (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Barrage")))) and ((varArcmTime) < (3))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Barrage"));
+            end;
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Presence of Mind"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Presence of Mind"));
+            end;
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Blast"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Blast"));
+            end;
+        end;
+        if ((((DestroDummies:unitPowerAfterCast() * 100) / UnitPowerMax("player"))) >= (30)) and ((varPowermana) == (1)) then
+            if ((DestroDummies:spellReady(DestroDummies:xlateString("Arcane Missiles"))) and ((varArcmCount) >= (2))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Missiles"));
+            end;
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Blast"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Blast"));
+            end;
+        end;
+        if (((DestroDummies:unitPowerAfterCast() * 100) / UnitPowerMax("player"))) < (30) then
+            varPowermana = 0
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Evocation"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Evocation"));
+            end;
+        end;
+    else
+        if DestroDummies:utilBuff(DestroDummies:xlateString("Arcane Power"), 0, "player", "HELPFUL", nil) then
+            varPowermana = 1
+            if ((not (DestroDummies:utilBuff(DestroDummies:xlateString("Alter Time"), 0, "player", "HELPFUL", nil))) and (DestroDummies:spellReady(DestroDummies:xlateString("Alter Time")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Alter Time"));
+            end;
+            if ((DestroDummies:spellReady(DestroDummies:xlateString("Arcane Missiles"))) and ((varArcmCount) >= (2))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Missiles"));
+            end;
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Blast"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Blast"));
+            end;
+        else
+            if (((((varhaveTotem) == (0)) or ((varremainingTime) < (5)))) and (DestroDummies:spellReady(DestroDummies:xlateString("Evocation")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Evocation"));
+            end;
+            if ((not (DestroDummies:utilDebuff(DestroDummies:xlateString("Nether Tempest"), 0))) and (DestroDummies:spellReady(DestroDummies:xlateString("Nether Tempest")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Nether Tempest"));
+            end;
+            if ((not (DestroDummies:utilDebuff(DestroDummies:xlateString("Living Bomb"), 0))) and (DestroDummies:spellReady(DestroDummies:xlateString("Living Bomb")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Living Bomb"));
+            end;
+            if ((not (DestroDummies:utilDebuff(DestroDummies:xlateString("Frost Bomb"), 0))) and (DestroDummies:spellReady(DestroDummies:xlateString("Frost Bomb")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Frost Bomb"));
+            end;
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Mirror Image"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Mirror Image"));
+            end;
+            if ((DestroDummies:spellReady(DestroDummies:xlateString("Arcane Missiles"))) and ((varArcmCount) >= (2))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Missiles"));
+            end;
+            if (((((DestroDummies:unitPowerAfterCast() * 100) / UnitPowerMax("player"))) <= (90)) and (DestroDummies:spellReady(DestroDummies:xlateString("Scorch")))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Scorch"));
+            end;
+            if (((DestroDummies:spellReady(DestroDummies:xlateString("Arcane Missiles"))) and ((varArcmCount) == (1))) and ((varArcmTime) < (3))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Missiles"));
+            end;
+            if ((((varArcCCount) >= (4)) and (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Barrage")))) and ((varArcmTime) < (3))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Barrage"));
+            end;
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Presence of Mind"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Presence of Mind"));
+            end;
+            if (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Blast"))) then
+                DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Blast"));
+            end;
+        end;
     end;
-    local varabBuffTime;
-    local varabBuffCount;
-    varabBuffTime, varabBuffCount = DestroDummies:utilBuffInfo(DestroDummies:xlateString("Arcane Blast"), true, "player")
-    if (varlastSpell) == (DestroDummies:xlateString("Arcane Blast")) then
-        varabBuffCount = (varabBuffCount) + (1)
-    end;
-    if (((varabBuffCount) >= (1)) and ((varabBuffCount) < (3))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Blast"));
-    end;
-    if (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Barrage"))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Barrage"));
-    end;
-    if (DestroDummies:spellReady(DestroDummies:xlateString("Arcane Missiles"))) then
-        DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Missiles"));
-    end;
-    DestroDummies:analysisAdd(DestroDummies:xlateString("Arcane Blast"));
-    DestroDummies:analysisAdd(DestroDummies:xlateString("Fire Blast"));
-    DestroDummies:analysisAdd(DestroDummies:xlateString("Fireball"));
-    return DestroDummies:analysisPick("Evocation", nil);
+    return DestroDummies:analysisPick("Shoot", nil);
 end;
 
 local function PickNoCombat()
