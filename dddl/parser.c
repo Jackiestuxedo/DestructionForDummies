@@ -4186,7 +4186,7 @@ proc_builtin1 (enum built_in proc)
 	return retval;
 	
     case BI_HOLY_POWER:
-	retval = astrdup("UnitPower(\"player\", SPELL_POWER_HOLY_POWER)");
+	retval = astrdup("UnitPower(\"player\", SPELL_POWER_SHADOW_ORBS)");
 	return retval;
 
     case BI_LUNAR_POWER:

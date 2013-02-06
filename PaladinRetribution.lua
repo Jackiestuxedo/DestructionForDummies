@@ -51,10 +51,10 @@ local function PickCombat()
             DestroDummies:analysisAdd(DestroDummies:xlateString("Resistance Aura"));
         end;
     end;
-    if ((not (DestroDummies:utilBuff(DestroDummies:xlateString("Inquisition"), clipInquisition, "player", "HELPFUL", nil))) and (((UnitPower("player", SPELL_POWER_HOLY_POWER)) >= (3)))) then
+    if ((not (DestroDummies:utilBuff(DestroDummies:xlateString("Inquisition"), clipInquisition, "player", "HELPFUL", nil))) and (((UnitPower("player", SPELL_POWER_SHADOW_ORBS)) >= (3)))) then
         DestroDummies:analysisAdd(DestroDummies:xlateString("Inquisition"));
     end;
-    if ((UnitPower("player", SPELL_POWER_HOLY_POWER)) == (5)) then
+    if ((UnitPower("player", SPELL_POWER_SHADOW_ORBS)) == (5)) then
         DestroDummies:analysisAdd(DestroDummies:xlateString("Templar's Verdict"));
     end;
     DestroDummies:analysisAdd(DestroDummies:xlateString("Execution Sentence"));
@@ -62,7 +62,7 @@ local function PickCombat()
     DestroDummies:analysisAdd(DestroDummies:xlateString("Exorcism"));
     DestroDummies:analysisAdd(DestroDummies:xlateString("Crusader Strike"));
     DestroDummies:analysisAdd(DestroDummies:xlateString("Judgement"));
-    if ((UnitPower("player", SPELL_POWER_HOLY_POWER)) >= (3)) then
+    if ((UnitPower("player", SPELL_POWER_SHADOW_ORBS)) >= (3)) then
         DestroDummies:analysisAdd(DestroDummies:xlateString("Templar's Verdict"));
     end;
     return DestroDummies:analysisPick("Divine Plea", nil);

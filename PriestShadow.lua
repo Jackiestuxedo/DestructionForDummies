@@ -33,10 +33,10 @@ local function PickCombat()
         if (not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Vampiric Touch"), clipVampiricTouch))) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Vampiric Touch"));
         end;
-        if ((not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Devouring Plague"), clipDevouringPlague))) and ((UnitPower("player", SPELL_POWER_HOLY_POWER)) == (3))) then
+        if ((not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Devouring Plague"), clipDevouringPlague))) and ((UnitPower("player", SPELL_POWER_SHADOW_ORBS)) == (3))) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Devouring Plague"));
         end;
-        if ((UnitPower("player", SPELL_POWER_HOLY_POWER)) < (3)) then
+        if ((UnitPower("player", SPELL_POWER_SHADOW_ORBS)) < (3)) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Blast"));
         end;
         if (DestroDummies:utilBuff(DestroDummies:xlateString("Surge of Darkness"), 0, "player", "HELPFUL", nil)) then
@@ -65,10 +65,10 @@ local function PickCombat()
         if (not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Shadow Word: Pain"), clipShadowWordPain))) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Shadow Word: Pain"));
         end;
-        if ((not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Devouring Plague"), clipDevouringPlague))) and ((UnitPower("player", SPELL_POWER_HOLY_POWER)) == (3))) then
+        if ((not (DestroDummies:utilDebuffByMe(DestroDummies:xlateString("Devouring Plague"), clipDevouringPlague))) and ((UnitPower("player", SPELL_POWER_SHADOW_ORBS)) == (3))) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Devouring Plague"));
         end;
-        if ((UnitPower("player", SPELL_POWER_HOLY_POWER)) < (3)) then
+        if ((UnitPower("player", SPELL_POWER_SHADOW_ORBS)) < (3)) then
             DestroDummies:analysisAdd(DestroDummies:xlateString("Mind Blast"));
         end;
         if (DestroDummies:utilBuff(DestroDummies:xlateString("Surge of Darkness"), 0, "player", "HELPFUL", nil)) then
